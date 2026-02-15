@@ -348,7 +348,7 @@ def get_stock_voucher_summary(filters):
 			AND posting_date BETWEEN %(from_date)s AND %(to_date)s
 			AND is_cancelled = 0
 		GROUP BY voucher_type
-		ORDER BY ABS(value_change) DESC
+		ORDER BY ABS(IFNULL(SUM(stock_value_difference), 0)) DESC
 	""", filters, as_dict=1)
 
 
@@ -369,7 +369,7 @@ def get_stock_movement(filters):
 			AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s
 			AND sle.is_cancelled = 0
 		GROUP BY sle.item_code
-		ORDER BY ABS(value_change) DESC
+		ORDER BY ABS(IFNULL(SUM(sle.stock_value_difference), 0)) DESC
 		LIMIT 20
 	""", filters, as_dict=1)
 
