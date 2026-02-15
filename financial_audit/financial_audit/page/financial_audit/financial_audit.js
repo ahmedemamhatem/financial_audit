@@ -84,6 +84,15 @@ class FinancialAuditDashboard {
 				<div class="filters-section"></div>
 				<div class="kpi-cards"></div>
 
+				<!-- AI Analysis — at top so it appears first when triggered -->
+				<div class="ai-analysis-section" style="display: none;">
+					<div class="section-header ai-header">
+						<span class="section-title"><i class="fa fa-magic" style="margin-left:8px"></i> التحليل الذكي (AI)</span>
+						<button class="btn btn-xs btn-default close-ai-btn">✕</button>
+					</div>
+					<div class="ai-analysis-body"></div>
+				</div>
+
 				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee',
 					'ملخص الميزانية العمومية', 'balance-sheet-body',
 					'ملخص إجمالي الأصول والالتزامات وحقوق الملكية والإيرادات والمصروفات خلال الفترة المحددة')}
@@ -168,14 +177,6 @@ class FinancialAuditDashboard {
 					'تقادم المخزون (مخزون راكد)', 'stock-ageing-body',
 					'الأصناف التي مضى على تخزينها فترة طويلة لتحديد المخزون الراكد')}
 
-				<!-- AI Analysis -->
-				<div class="ai-analysis-section" style="display: none;">
-					<div class="section-header ai-header">
-						<span class="section-title"><i class="fa fa-magic" style="margin-left:8px"></i> التحليل الذكي (AI)</span>
-						<button class="btn btn-xs btn-default close-ai-btn">✕</button>
-					</div>
-					<div class="ai-analysis-body"></div>
-				</div>
 			</div>
 		`);
 
@@ -995,10 +996,10 @@ class FinancialAuditDashboard {
 			return;
 		}
 
-		this.$ai.slideDown();
+		this.$ai.slideDown(200, () => {
+			$('html, body').animate({ scrollTop: this.$ai.offset().top - 60 }, 300);
+		});
 		this.$ai_body.html('<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> جاري التحليل بالذكاء الاصطناعي... قد يستغرق دقيقة</div>');
-
-		$('html, body').animate({ scrollTop: this.$ai.offset().top - 100 }, 300);
 
 		try {
 			const prompt = this.build_ai_prompt();
