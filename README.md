@@ -4,11 +4,12 @@
 
 **Advanced Financial Audit & Analysis Dashboard**
 
-A standalone Frappe app that provides financial auditors with a comprehensive, real-time overview of any ERPNext business — with AI-powered analysis.
+A standalone Frappe app that provides financial auditors with a comprehensive, real-time overview of any ERPNext business — with AI-powered analysis, advanced fraud detection, and bilingual (Arabic/English) support.
 
 [![Frappe](https://img.shields.io/badge/Frappe-v15-blue.svg)](https://frappeframework.com)
 [![ERPNext](https://img.shields.io/badge/ERPNext-v15-green.svg)](https://erpnext.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![ECharts](https://img.shields.io/badge/Charts-ECharts%205.5-orange.svg)](https://echarts.apache.org)
 
 </div>
 
@@ -20,14 +21,39 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 
 ### Key Highlights
 
-- **25 Data Sections** covering every aspect of financial operations
+- **30+ Data Sections** covering every aspect of financial operations
 - **12 KPI Cards** with real-time financial metrics
-- **4 Interactive Charts** (monthly trends, daily sales, expense breakdown, cash flow)
+- **5 Interactive ECharts** (monthly trends, daily sales, expense breakdown, cash flow, Benford's Law)
 - **20+ Data Tables** with drill-down links
 - **Free AI Analysis** via Puter.js — no API keys required
-- **Full Arabic RTL** interface with responsive design
+- **Bilingual Interface** — Arabic (RTL) and English (LTR) based on user language
+- **Advanced Audit Analytics** — DuPont, CCC, Benford's Law, Duplicate Payments, Concentration Risk
 - **Dynamic Discovery** of custom doctypes, custom fields, and accounting dimensions
 - **Works on ANY ERPNext site** — no hardcoded account names
+
+---
+
+## Advanced Audit Analytics
+
+### DuPont Analysis & Financial Ratios
+- **Return on Equity (ROE)** decomposition: Profit Margin x Asset Turnover x Equity Multiplier
+- **Cash Conversion Cycle (CCC)**: DSO + DIO - DPO
+- **Liquidity Ratios**: Current Ratio, Quick Ratio, Cash Ratio
+- **Working Capital** metrics with health indicators
+
+### Fraud Detection
+- **Benford's Law Analysis**: First-digit distribution test with Chi-square statistic (critical value 15.51 at alpha=0.05, 8df) for both sales and purchase invoices
+- **Duplicate Payment Detection**: Same amount to same supplier within 7 days — automatic flagging
+- **Weekend & Month-End Transactions**: Unusual timing patterns that may indicate manipulation or weak controls
+
+### Concentration Risk
+- **Customer Concentration**: Top customer and Top 5 customer revenue dependency analysis
+- **Supplier Concentration**: Top supplier and Top 5 supplier purchase dependency analysis
+- **Risk Level Assessment**: Automatic high/medium/low classification
+
+### Year-over-Year Comparison
+- Revenue, gross profit, expenses, net profit, and invoice count growth rates
+- Same-period comparison with prior year
 
 ---
 
@@ -42,7 +68,7 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 | KPI Cards | 12 color-coded metrics (revenue, profit, margins, AR/AP, cash, inventory) |
 | Balance Sheet | Summary by root type (Assets, Liabilities, Equity, Income, Expense) |
 | Income Statement | Hierarchical P&L with expandable accounts |
-| Charts | Monthly trends, daily sales, expense pie, cash flow bars |
+| Charts | Monthly trends, daily sales, expense pie, cash flow bars, Benford's chart |
 | Transaction Analysis | GL & Stock Ledger voucher type discovery |
 | Customer/Product/Supplier | Top performers with collection rates |
 | Returns Analysis | Sales & purchase returns by party |
@@ -50,8 +76,23 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 | Bank & Cash | Individual account balances |
 | Payment Analysis | By mode of payment and type |
 | Inventory | Warehouse valuation + stock movement + dead stock detection |
-| System Analysis | Custom doctypes, GL custom fields, accounting dimensions, installed apps |
-| AI Analysis | Comprehensive Arabic financial report powered by free AI |
+| DuPont & CCC | Advanced financial ratios with visual metrics |
+| Benford's Law | First-digit fraud detection chart with Chi-square test |
+| Duplicate Payments | Automatic detection of suspicious duplicate payments |
+| Concentration Risk | Customer & supplier dependency analysis |
+| Weekend Transactions | Unusual timing pattern detection |
+| AI Analysis | Comprehensive financial report powered by free AI |
+
+---
+
+## Bilingual Support
+
+The dashboard automatically detects the user's language setting (`frappe.boot.lang`) and renders the entire interface in:
+
+- **Arabic (العربية)** — RTL layout, Cairo font, full Arabic labels
+- **English** — LTR layout, all labels translated
+
+All charts, tables, KPIs, section titles, AI analysis, and risk assessments are fully bilingual.
 
 ---
 
@@ -104,16 +145,16 @@ financial_audit/
 │       └── page/
 │           └── financial_audit/
 │               ├── financial_audit.json   # Page definition & roles
-│               ├── financial_audit.py     # Backend API (594 lines)
-│               ├── financial_audit.js     # Frontend dashboard (1,104 lines)
-│               └── financial_audit.css    # RTL responsive styles (554 lines)
+│               ├── financial_audit.py     # Backend API (~920 lines)
+│               ├── financial_audit.js     # Frontend dashboard (~1,850 lines)
+│               └── financial_audit.css    # RTL/LTR responsive styles (~950 lines)
 ```
 
-**Total: ~2,300 lines of code | Zero external dependencies**
+**Total: ~3,700+ lines of code | Zero external dependencies**
 
 ---
 
-## Data Sections (25 Endpoints)
+## Data Sections (30+ Endpoints)
 
 All data is fetched in a **single API call** via `get_financial_audit_data(filters)`.
 
@@ -162,6 +203,17 @@ All data is fetched in a **single API call** via `get_financial_audit_data(filte
 | 22 | Custom Doctypes | `custom_doctypes_analysis` | Dynamic discovery of ALL submittable doctypes |
 | 23 | Installed Apps | `installed_apps` | Site app registry with versions |
 
+### Advanced Audit Analytics
+
+| # | Section | Key | Description |
+|---|---------|-----|-------------|
+| 24 | Working Capital Metrics | `working_capital_metrics` | DSO, DPO, DIO, CCC, Current/Quick/Cash Ratio, DuPont ROE |
+| 25 | YoY Growth | `yoy_growth` | Revenue, gross profit, expense, net profit, invoice count growth |
+| 26 | Benford's Law | `benfords_law` | Chi-square first-digit analysis for sales & purchase invoices |
+| 27 | Duplicate Payments | `duplicate_payments` | Same amount + same supplier within 7 days detection |
+| 28 | Concentration Risk | `concentration_risk` | Top 1 & Top 5 customer/supplier revenue/purchase concentration |
+| 29 | Weekend Transactions | `weekend_transactions` | Weekend and month-end transaction pattern analysis |
+
 ---
 
 ## Universal Compatibility
@@ -176,6 +228,7 @@ The dashboard is designed to work on **any** ERPNext site without modification:
 | **Currency** | Auto-detected via `erpnext.get_company_currency()` |
 | **Company** | Falls back to user default or Global Defaults |
 | **Fiscal Year** | Date range filters — no fiscal year dependency |
+| **Language** | Auto-detected via `frappe.boot.lang` — Arabic (RTL) or English (LTR) |
 | **Custom Doctypes** | Dynamically discovers ALL `is_submittable=1` doctypes with `company` field |
 | **Custom Fields** | Detects custom fields added to GL Entry |
 | **Accounting Dimensions** | Discovers configured accounting dimensions |
@@ -197,23 +250,26 @@ The dashboard includes **free AI analysis** powered by [Puter.js](https://puter.
 
 ### How It Works
 
-1. Click **"تحليل ذكي (AI)"** button
-2. Dashboard builds a structured prompt with ALL financial data
+1. Click the **"AI Analysis"** button (or "تحليل ذكي" in Arabic)
+2. Dashboard builds a structured prompt with ALL financial data including advanced analytics
 3. Puter.js sends the prompt to GPT-4o-mini (free tier)
-4. AI returns a comprehensive Arabic financial report
+4. AI returns a comprehensive financial report in the user's language
+5. Use the **"Clear AI"** button to dismiss the analysis
 
 ### AI Analysis Covers
 
-1. **Financial Health Score** — Rating out of 100 with explanation
-2. **Risk Analysis** — Top 5 financial risks identified
-3. **Anomaly Detection** — Unusual patterns in the data
-4. **Cash Flow Analysis** — Liquidity assessment
-5. **Inventory Analysis** — Dead stock and management issues
-6. **Returns Analysis** — Return rates and impact
-7. **Strengths** — Positive financial indicators
-8. **Weaknesses** — Areas requiring attention
-9. **Actionable Recommendations** — 7-10 specific improvement suggestions
-10. **Custom App Risk Analysis** — Risks from customizations
+1. **Financial Health Score** — Rating out of 100 with multi-factor weighted scoring
+2. **DuPont Analysis** — ROE decomposition with component analysis
+3. **Cash Conversion Cycle** — DSO/DPO/DIO impact on liquidity
+4. **Fraud & Risk Analysis** — Benford's Law, duplicate payments, weekend transactions
+5. **Concentration Risk** — Customer and supplier dependency
+6. **Year-over-Year Comparison** — Growth and contraction trends
+7. **Cash Flow Analysis** — Liquidity and obligation coverage
+8. **Inventory Analysis** — Dead stock and management issues
+9. **Returns Analysis** — Return rates and profitability impact
+10. **SWOT Analysis** — Financial strengths, weaknesses, opportunities, threats
+11. **Actionable Recommendations** — 10 prioritized suggestions
+12. **Early Warning Signs** — Future problem indicators
 
 ---
 
@@ -222,7 +278,7 @@ The dashboard includes **free AI analysis** powered by [Puter.js](https://puter.
 | Filter | Type | Default | Description |
 |--------|------|---------|-------------|
 | Company | Link (Company) | User's default company | Filter all data by company |
-| From Date | Date | 1 month ago | Period start date |
+| From Date | Date | Year start | Period start date |
 | To Date | Date | Today | Period end date |
 
 Changing any filter automatically refreshes all sections, charts, and KPIs.
@@ -231,14 +287,15 @@ Changing any filter automatically refreshes all sections, charts, and KPIs.
 
 ## Visual Components
 
-### Charts (Frappe Chart Library)
+### Charts (Apache ECharts 5.5)
 
 | Chart | Type | Description |
 |-------|------|-------------|
 | Monthly Trends | Bar | Revenue vs Expenses by month |
 | Daily Sales | Line | Sales volume with area fill |
-| Expense Breakdown | Pie | Top 10 expense categories |
+| Expense Breakdown | Donut | Top 10 expense categories |
 | Cash Flow | Bar | Receipts vs Payments by month |
+| Benford's Law | Bar + Line | First-digit distribution vs expected |
 
 ### Badges
 
@@ -247,7 +304,7 @@ Changing any filter automatically refreshes all sections, charts, and KPIs.
 | Aging | Green (0-30d) / Yellow (31-60d) / Red (60+d) | AR/AP aging, stock ageing |
 | Account Type | Blue (Bank) / Green (Cash) | Bank balances section |
 | Payment Type | Green (Receive) / Red (Pay) | Payment modes section |
-| Doctype Type | Yellow (Custom) / Blue (Core) | Custom doctypes section |
+| Risk Level | Green (Low) / Yellow (Medium) / Red (High) | Benford, duplicates, concentration |
 
 ### Collection Rate Bar
 
@@ -271,26 +328,29 @@ Visual progress bar showing customer payment collection percentage:
 
 ### Backend (`financial_audit.py`)
 
-- **Single entry point**: `get_financial_audit_data(filters)` returns all 25 sections
+- **Single entry point**: `get_financial_audit_data(filters)` returns all 30+ sections
 - **Universal queries**: All SQL uses `root_type`, `account_type`, `is_group` — never hardcoded names
 - **Performance**: Single API call fetches everything; SQL queries use proper JOINs and indexes
+- **Advanced analytics**: Benford's Law with Chi-square test, DuPont decomposition, CCC calculation
 - **Error handling**: `get_custom_doctypes_analysis()` handles missing doctypes gracefully
 - **Cancelled entries**: All queries exclude `is_cancelled = 0` and opening entries
 
 ### Frontend (`financial_audit.js`)
 
 - **Class-based**: `FinancialAuditDashboard` with clean method separation
-- **23 render methods**: Each section has its own render method
-- **Frappe Chart**: Native chart library (bundled with Frappe)
-- **Frappe Controls**: Uses `frappe.ui.form.make_control()` for filter fields
-- **RTL**: Full Arabic interface with `direction: rtl`
+- **Full i18n**: `FA_TRANSLATIONS` dictionary with 200+ keys in Arabic/English
+- **Language detection**: Automatic via `frappe.boot.lang` with `t()` helper method
+- **ECharts 5.5**: Interactive charts with tooltips and responsive sizing
+- **Puter.js**: Free AI analysis (GPT-4o-mini) — bilingual prompts
 - **Collapsible sections**: Toggle buttons for long tables
+- **Multi-factor health score**: Weighted scoring across profitability, liquidity, collection, margins, and advanced metrics
 
 ### Styling (`financial_audit.css`)
 
-- **RTL-first**: `direction: rtl`, `text-align: right`
-- **Responsive grid**: KPI cards adapt from 6 → 4 → 2 columns
-- **Two-column layout**: Related sections paired side-by-side
+- **RTL + LTR**: Automatic direction based on language
+- **Clean design**: Strong font colors, bold weights, clear size hierarchy
+- **Cairo font**: Arabic-optimized Google Font
+- **Responsive grid**: KPI cards adapt from 6 → 4 → 2 → 1 columns
 - **Print-friendly**: Clean table styling with sticky headers
 - **Breakpoints**: 1200px, 768px, 480px
 
@@ -298,13 +358,17 @@ Visual progress bar showing customer payment collection percentage:
 
 ## Roadmap
 
+- [x] Advanced financial ratios (DuPont, CCC, liquidity)
+- [x] Benford's Law fraud detection
+- [x] Duplicate payment detection
+- [x] Concentration risk analysis
+- [x] Weekend/month-end transaction analysis
+- [x] Year-over-Year comparison
+- [x] Bilingual Arabic/English support
+- [x] ECharts interactive charts
 - [ ] PDF export for audit reports
-- [ ] Date comparison (period vs period)
-- [ ] Drill-down from KPI cards to filtered lists
 - [ ] Email scheduled reports
-- [ ] Multi-language support (English, Arabic, French)
 - [ ] Custom dashboard layouts
-- [ ] Ratio analysis (liquidity, solvency, efficiency)
 - [ ] Budget vs actual comparison
 - [ ] Audit trail logging
 
@@ -330,14 +394,16 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## Author
 
-**Elsaeed**
-- Email: info@elsaeed-eg.com
+**Ahmed Emam**
+- Email: ahmedemamhatem@gmail.com
 - GitHub: [@ahmedemamhatem](https://github.com/ahmedemamhatem)
 
 ---
 
 <div align="center">
 
-**Built for ERPNext** | **Works on any site** | **Free AI included**
+**Built with love for the Frappe Community**
+
+**Works on any ERPNext site** | **Free AI included** | **Bilingual AR/EN**
 
 </div>
