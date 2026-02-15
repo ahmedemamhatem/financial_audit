@@ -702,9 +702,6 @@ class FinancialAuditDashboard {
 					this.t('sec_weekend_txn'), 'weekend-txn-body',
 					this.t('sec_weekend_txn_desc'))}
 
-				<!-- ═══ NEW ADVANCED FEATURES ═══ -->
-				<div class="audit-divider audit-divider-new"><span><i class="fa fa-search-plus"></i> ${this.lang === 'ar' ? 'تحليلات متقدمة جديدة' : 'New Advanced Analytics'}</span></div>
-
 				${this.make_section('data-section', 'fa-chain-broken', '#fef2f2', '#dc2626',
 					this.t('sec_payment_recon'), 'payment-recon-body',
 					this.t('sec_payment_recon_desc'))}
