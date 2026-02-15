@@ -1154,11 +1154,51 @@ ${installed_apps}
 	show_ai_results(text) {
 		const k = this.data.kpis;
 
-		// Health score calculation
-		const health_score = k.net_margin > 15 ? 85 : (k.net_margin > 5 ? 65 : (k.net_margin > 0 ? 45 : 25));
-		const health_color = health_score >= 70 ? '#059669' : (health_score >= 50 ? '#d97706' : '#dc2626');
-		const health_label = health_score >= 70 ? 'جيد' : (health_score >= 50 ? 'متوسط' : 'ضعيف');
-		const collection_pct = k.revenue > 0 ? ((1 - k.ar_outstanding / k.revenue) * 100).toFixed(0) : 100;
+		// Advanced health score — weighted multi-factor
+		let score = 50;
+		// Profitability (30 pts)
+		if (k.net_margin > 20) score += 30; else if (k.net_margin > 10) score += 22; else if (k.net_margin > 5) score += 15; else if (k.net_margin > 0) score += 8; else score -= 10;
+		// Liquidity (20 pts)
+		const liquidity_ratio = k.ap_outstanding > 0 ? k.cash_balance / k.ap_outstanding : 2;
+		if (liquidity_ratio >= 1.5) score += 20; else if (liquidity_ratio >= 1) score += 12; else if (liquidity_ratio >= 0.5) score += 5; else score -= 5;
+		// Collection efficiency (15 pts)
+		const collection_pct = k.revenue > 0 ? Math.round((1 - k.ar_outstanding / k.revenue) * 100) : 100;
+		if (collection_pct >= 85) score += 15; else if (collection_pct >= 70) score += 10; else if (collection_pct >= 50) score += 5; else score -= 5;
+		// Gross margin health (10 pts)
+		if (k.gross_margin > 30) score += 10; else if (k.gross_margin > 20) score += 7; else if (k.gross_margin > 10) score += 4; else score += 0;
+		// Revenue presence (-25 if zero)
+		if (k.revenue <= 0) score -= 25;
+
+		const health_score = Math.max(0, Math.min(100, score));
+		const health_color = health_score >= 75 ? '#047857' : (health_score >= 50 ? '#b45309' : '#b91c1c');
+		const health_label = health_score >= 75 ? 'ممتاز' : (health_score >= 60 ? 'جيد' : (health_score >= 40 ? 'متوسط' : 'ضعيف'));
+		const gauge_border = `6px solid ${health_color}`;
+
+		// Financial ratios
+		const expense_ratio = k.revenue > 0 ? ((k.total_expenses / k.revenue) * 100).toFixed(1) : '0';
+		const working_capital = k.ar_outstanding + k.inventory_value - k.ap_outstanding;
+		const current_ratio = k.ap_outstanding > 0 ? ((k.cash_balance + k.ar_outstanding) / k.ap_outstanding).toFixed(2) : '∞';
+		const debt_to_equity_approx = k.ar_outstanding > 0 ? (k.ap_outstanding / (k.cash_balance + k.ar_outstanding + k.inventory_value)).toFixed(2) : '0';
+		const avg_invoice = k.si_count > 0 ? k.revenue / k.si_count : 0;
+
+		// Risk assessment
+		const risks = [];
+		if (collection_pct < 60) risks.push({ level: 'high', title: 'ضعف التحصيل', desc: `نسبة التحصيل ${collection_pct}% فقط — خطر تعثر السيولة` });
+		if (liquidity_ratio < 0.5) risks.push({ level: 'high', title: 'عجز السيولة', desc: `النقد يغطي ${(liquidity_ratio * 100).toFixed(0)}% فقط من الالتزامات` });
+		if (k.net_margin < 0) risks.push({ level: 'high', title: 'خسارة صافية', desc: `هامش صافي الربح سلبي ${k.net_margin.toFixed(1)}%` });
+		if (k.gross_margin < 15) risks.push({ level: 'medium', title: 'هامش ربح منخفض', desc: `هامش الربح الإجمالي ${k.gross_margin.toFixed(1)}% — ضغط على الأسعار` });
+		if (k.ar_outstanding > k.revenue * 0.4) risks.push({ level: 'medium', title: 'تركز الذمم المدينة', desc: 'الذمم المدينة تتجاوز 40% من الإيرادات' });
+		if (k.inventory_value > k.revenue * 0.5) risks.push({ level: 'medium', title: 'ارتفاع المخزون', desc: 'قيمة المخزون مرتفعة مقارنة بالإيرادات' });
+		if (liquidity_ratio >= 0.5 && liquidity_ratio < 1) risks.push({ level: 'low', title: 'سيولة محدودة', desc: 'النقد لا يغطي كامل الالتزامات الحالية' });
+		if (k.gross_margin >= 15 && k.gross_margin < 25) risks.push({ level: 'low', title: 'هامش ربح مقبول', desc: 'هامش الربح مقبول لكن يمكن تحسينه' });
+
+		const risks_html = risks.slice(0, 5).map(r => `
+			<div class="ai-risk-card ${r.level}">
+				<span class="ai-risk-badge ${r.level}">${r.level === 'high' ? 'مرتفع' : (r.level === 'medium' ? 'متوسط' : 'منخفض')}</span>
+				<div class="ai-risk-title">${r.title}</div>
+				<div class="ai-risk-desc">${r.desc}</div>
+			</div>
+		`).join('');
 
 		// Top 5 customers
 		const top5 = (this.data.top_customers || []).slice(0, 5);
@@ -1166,7 +1206,7 @@ ${installed_apps}
 			<td class="num">${i + 1}</td>
 			<td>${c.customer_name}</td>
 			<td class="currency-val">${this.fc(c.total_revenue)}</td>
-			<td style="color:${(c.collection_rate || 0) >= 70 ? '#059669' : '#d97706'};font-weight:700">${c.collection_rate || 0}%</td>
+			<td style="color:${(c.collection_rate || 0) >= 70 ? '#047857' : '#b45309'};font-weight:800">${c.collection_rate || 0}%</td>
 		</tr>`).join('');
 
 		// Top 5 expenses
@@ -1181,9 +1221,9 @@ ${installed_apps}
 		const trends = this.data.monthly_trends || [];
 		const trend_html = trends.map(t => `<tr>
 			<td>${this.months_ar[t.mn]} ${t.yr}</td>
-			<td class="currency-val" style="color:#059669">${this.fc(t.revenue)}</td>
-			<td class="currency-val" style="color:#dc2626">${this.fc(t.expenses)}</td>
-			<td class="currency-val" style="color:${(t.revenue - t.expenses) >= 0 ? '#059669' : '#dc2626'}">${this.fc(t.revenue - t.expenses)}</td>
+			<td class="currency-val" style="color:#047857">${this.fc(t.revenue)}</td>
+			<td class="currency-val" style="color:#b91c1c">${this.fc(t.expenses)}</td>
+			<td class="currency-val" style="color:${(t.revenue - t.expenses) >= 0 ? '#047857' : '#b91c1c'}">${this.fc(t.revenue - t.expenses)}</td>
 		</tr>`).join('');
 
 		// Convert AI text to HTML
@@ -1197,48 +1237,86 @@ ${installed_apps}
 			.replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
 			.replace(/\n\n/g, '</p><p>')
 			.replace(/\n/g, '<br>');
-
 		ai_html = ai_html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
 		ai_html = ai_html.replace(/<\/ul>\s*<ul>/g, '');
 
 		this.$ai_body.html(`
 			<div class="ai-report" dir="rtl">
 				<div class="ai-report-header">
-					<i class="fa fa-magic" style="color:#4361ee"></i>
-					<span>تقرير التحليل الذكي - ${this.data.company}</span>
+					<i class="fa fa-magic" style="color:var(--fa-primary-light)"></i>
+					<span>تقرير التدقيق المالي الذكي — ${this.data.company}</span>
 					<span class="ai-date">${this.data.from_date} إلى ${this.data.to_date}</span>
 				</div>
 
-				<!-- Summary Cards -->
-				<div class="ai-summary-grid">
-					<div class="ai-summary-card">
-						<div class="label">تقييم الصحة المالية</div>
-						<div class="value" style="color:${health_color}">${health_score}</div>
-						<div class="sub" style="color:${health_color}">${health_label}</div>
+				<!-- Row 1: Health Gauge + Summary Cards -->
+				<div style="display:grid;grid-template-columns:180px 1fr;gap:20px;margin-bottom:24px;align-items:start">
+					<div style="text-align:center;padding:20px 10px;border:1px solid var(--fa-border);border-radius:10px">
+						<div class="ai-gauge">
+							<div class="ai-gauge-circle" style="border:${gauge_border}">
+								<div class="ai-gauge-score" style="color:${health_color}">${health_score}</div>
+								<div class="ai-gauge-label" style="color:${health_color}">${health_label}</div>
+							</div>
+						</div>
+						<div style="font-size:11px;color:var(--fa-text-muted);font-weight:700;margin-top:6px">الصحة المالية</div>
 					</div>
-					<div class="ai-summary-card">
-						<div class="label">صافي الربح</div>
-						<div class="value" style="color:${k.net_profit >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.net_profit)}</div>
-						<div class="sub" style="color:var(--fa-text-sub)">هامش ${k.net_margin.toFixed(1)}%</div>
-					</div>
-					<div class="ai-summary-card">
-						<div class="label">السيولة النقدية</div>
-						<div class="value" style="color:${k.cash_balance >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.cash_balance)}</div>
-						<div class="sub" style="color:var(--fa-text-sub)">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
-					</div>
-					<div class="ai-summary-card">
-						<div class="label">نسبة التحصيل</div>
-						<div class="value" style="color:${collection_pct >= 70 ? '#059669' : '#d97706'}">${collection_pct}%</div>
-						<div class="sub" style="color:var(--fa-text-sub)">ذمم: ${this.fc(k.ar_outstanding)}</div>
+					<div class="ai-summary-grid" style="margin-bottom:0">
+						<div class="ai-summary-card">
+							<div class="label">صافي الربح</div>
+							<div class="value" style="color:${k.net_profit >= 0 ? '#047857' : '#b91c1c'}">${this.fc(k.net_profit)}</div>
+							<div class="sub" style="color:var(--fa-text-muted)">هامش ${k.net_margin.toFixed(1)}%</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">السيولة النقدية</div>
+							<div class="value" style="color:${k.cash_balance >= 0 ? '#047857' : '#b91c1c'}">${this.fc(k.cash_balance)}</div>
+							<div class="sub" style="color:var(--fa-text-muted)">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">نسبة التحصيل</div>
+							<div class="value" style="color:${collection_pct >= 70 ? '#047857' : '#b45309'}">${collection_pct}%</div>
+							<div class="sub" style="color:var(--fa-text-muted)">ذمم: ${this.fc(k.ar_outstanding)}</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">رأس المال العامل</div>
+							<div class="value" style="color:${working_capital >= 0 ? '#047857' : '#b91c1c'}">${this.fc(working_capital)}</div>
+							<div class="sub" style="color:var(--fa-text-muted)">مدينون + مخزون − دائنون</div>
+						</div>
 					</div>
 				</div>
 
-				<!-- Monthly Trend Table -->
+				<!-- Row 2: Financial Ratios -->
+				<div style="margin-bottom:24px">
+					<div class="ai-section-title"><i class="fa fa-calculator"></i> النسب المالية الرئيسية</div>
+					<div class="ai-summary-grid">
+						<div class="ai-summary-card">
+							<div class="label">هامش الربح الإجمالي</div>
+							<div class="value" style="color:${k.gross_margin >= 20 ? '#047857' : '#b45309'}">${k.gross_margin.toFixed(1)}%</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">نسبة المصروفات</div>
+							<div class="value" style="color:${expense_ratio <= 80 ? '#047857' : '#b91c1c'}">${expense_ratio}%</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">نسبة التداول</div>
+							<div class="value" style="color:${parseFloat(current_ratio) >= 1 ? '#047857' : '#b91c1c'}">${current_ratio}</div>
+						</div>
+						<div class="ai-summary-card">
+							<div class="label">متوسط الفاتورة</div>
+							<div class="value" style="color:var(--fa-text-mid)">${this.fc(avg_invoice)}</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Row 3: Risk Assessment -->
+				${risks.length ? `
+				<div style="margin-bottom:24px">
+					<div class="ai-section-title"><i class="fa fa-exclamation-triangle" style="color:#b91c1c"></i> تقييم المخاطر</div>
+					${risks_html}
+				</div>` : ''}
+
+				<!-- Row 4: Monthly Trend -->
 				${trends.length ? `
 				<div style="margin-bottom:24px">
-					<div class="ai-section-title">
-						<i class="fa fa-bar-chart"></i> الأداء الشهري
-					</div>
+					<div class="ai-section-title"><i class="fa fa-bar-chart"></i> الأداء الشهري</div>
 					<table class="ai-data-table">
 						<thead><tr>
 							<th>الشهر</th><th style="text-align:left">الإيرادات</th><th style="text-align:left">المصروفات</th><th style="text-align:left">صافي</th>
@@ -1247,21 +1325,17 @@ ${installed_apps}
 					</table>
 				</div>` : ''}
 
-				<!-- Top Customers + Top Expenses -->
+				<!-- Row 5: Top Customers + Expenses -->
 				<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
 					${top5.length ? `<div>
-						<div class="ai-section-title">
-							<i class="fa fa-users"></i> أعلى 5 عملاء
-						</div>
+						<div class="ai-section-title"><i class="fa fa-users"></i> أعلى 5 عملاء</div>
 						<table class="ai-data-table">
 							<thead><tr><th>#</th><th>العميل</th><th style="text-align:left">الإيرادات</th><th style="text-align:left">التحصيل</th></tr></thead>
 							<tbody>${top5_html}</tbody>
 						</table>
 					</div>` : '<div></div>'}
 					${top5_exp.length ? `<div>
-						<div class="ai-section-title">
-							<i class="fa fa-pie-chart"></i> أعلى 5 مصروفات
-						</div>
+						<div class="ai-section-title"><i class="fa fa-pie-chart"></i> أعلى 5 مصروفات</div>
 						<table class="ai-data-table">
 							<thead><tr><th>#</th><th>البند</th><th style="text-align:left">المبلغ</th></tr></thead>
 							<tbody>${top5_exp_html}</tbody>
@@ -1269,10 +1343,10 @@ ${installed_apps}
 					</div>` : '<div></div>'}
 				</div>
 
-				<!-- AI Analysis Text -->
+				<!-- Row 6: AI Analysis Text -->
 				<div style="border-top:2px solid var(--fa-border);padding-top:24px;margin-top:8px">
 					<div class="ai-section-title">
-						<i class="fa fa-lightbulb-o" style="color:#f59e0b"></i> التحليل والتوصيات
+						<i class="fa fa-lightbulb-o" style="color:#b45309"></i> التحليل والتوصيات (AI)
 					</div>
 					<div class="ai-report-content"><p>${ai_html}</p></div>
 				</div>
