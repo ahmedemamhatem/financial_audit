@@ -26,6 +26,8 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 - **5 Interactive ECharts** (monthly trends, daily sales, expense breakdown, cash flow, Benford's Law)
 - **20+ Data Tables** with drill-down links
 - **Free AI Analysis** via Puter.js — no API keys required
+- **PDF Export** — one-click print-optimized audit reports
+- **Custom Dashboard Layouts** — show/hide sections with saved preferences
 - **Bilingual Interface** — Arabic (RTL) and English (LTR) based on user language
 - **Advanced Audit Analytics** — DuPont, CCC, Benford's Law, Duplicate Payments, Concentration Risk
 - **Dynamic Discovery** of custom doctypes, custom fields, and accounting dimensions
@@ -82,6 +84,8 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 | Concentration Risk | Customer & supplier dependency analysis |
 | Weekend Transactions | Unusual timing pattern detection |
 | AI Analysis | Comprehensive financial report powered by free AI |
+| PDF Export | One-click print-optimized full audit report |
+| Custom Layout | Show/hide any section with persistent preferences |
 
 ---
 
@@ -146,11 +150,11 @@ financial_audit/
 │           └── financial_audit/
 │               ├── financial_audit.json   # Page definition & roles
 │               ├── financial_audit.py     # Backend API (~920 lines)
-│               ├── financial_audit.js     # Frontend dashboard (~1,850 lines)
-│               └── financial_audit.css    # RTL/LTR responsive styles (~950 lines)
+│               ├── financial_audit.js     # Frontend dashboard (~2,100 lines)
+│               └── financial_audit.css    # RTL/LTR responsive styles (~1,000 lines)
 ```
 
-**Total: ~3,700+ lines of code | Zero external dependencies**
+**Total: ~4,000+ lines of code | Zero external dependencies**
 
 ---
 
@@ -273,6 +277,50 @@ The dashboard includes **free AI analysis** powered by [Puter.js](https://puter.
 
 ---
 
+## PDF Export
+
+Generate professional, print-ready audit reports with a single click.
+
+### How It Works
+
+1. Click the **"Export PDF"** button (or "تصدير PDF" in Arabic)
+2. All collapsed sections automatically expand for a complete report
+3. Frappe UI chrome (navbar, sidebar) is hidden for a clean layout
+4. Browser print dialog opens — save as PDF or send to printer
+5. Dashboard restores to its previous state after printing
+
+### PDF Features
+
+- **Full color preservation** — KPI colors, badges, and charts print exactly as displayed
+- **Optimized layout** — 6-column KPI grid, 4-column metrics, proper table sizing
+- **Smart section control** — hidden sections (via Custom Layout) stay hidden in PDF
+- **Automatic filename** — includes company name and date range
+- **All sections expanded** — no collapsed/hidden content in the export
+
+---
+
+## Custom Dashboard Layouts
+
+Personalize which sections appear on your dashboard — preferences are saved per browser.
+
+### How It Works
+
+1. Click the **"Customize Layout"** button (or "تخصيص العرض" in Arabic)
+2. A dialog shows checkboxes for all 27 dashboard sections
+3. Toggle sections on/off — use **Show All**, **Hide All**, or **Reset** for bulk actions
+4. Click **Save** — preferences persist across sessions via `localStorage`
+
+### Layout Features
+
+- **27 toggleable sections** — every data table, chart, and analytics section
+- **Instant apply** — sections show/hide immediately after saving
+- **Persistent preferences** — saved per browser, survives page refreshes and logouts
+- **PDF-aware** — hidden sections stay hidden in PDF exports too
+- **Smart divider** — advanced audit divider auto-hides when all advanced sections are hidden
+- **Bilingual dialog** — fully translated in Arabic and English
+
+---
+
 ## Filters
 
 | Filter | Type | Default | Description |
@@ -343,6 +391,8 @@ Visual progress bar showing customer payment collection percentage:
 - **ECharts 5.5**: Interactive charts with tooltips and responsive sizing
 - **Puter.js**: Free AI analysis (GPT-4o-mini) — bilingual prompts
 - **Collapsible sections**: Toggle buttons for long tables
+- **PDF export**: `window.print()` with enhanced print CSS, auto-expand, Frappe chrome hidden
+- **Custom layouts**: Section registry with `localStorage` persistence, Frappe dialog UI
 - **Multi-factor health score**: Weighted scoring across profitability, liquidity, collection, margins, and advanced metrics
 
 ### Styling (`financial_audit.css`)
@@ -351,7 +401,7 @@ Visual progress bar showing customer payment collection percentage:
 - **Clean design**: Strong font colors, bold weights, clear size hierarchy
 - **Cairo font**: Arabic-optimized Google Font
 - **Responsive grid**: KPI cards adapt from 6 → 4 → 2 → 1 columns
-- **Print-friendly**: Clean table styling with sticky headers
+- **Print/PDF optimized**: Full `@media print` rules — hides Frappe chrome, expands sections, preserves colors
 - **Breakpoints**: 1200px, 768px, 480px
 
 ---
@@ -366,9 +416,9 @@ Visual progress bar showing customer payment collection percentage:
 - [x] Year-over-Year comparison
 - [x] Bilingual Arabic/English support
 - [x] ECharts interactive charts
-- [ ] PDF export for audit reports
+- [x] PDF export for audit reports
+- [x] Custom dashboard layouts (show/hide with persistence)
 - [ ] Email scheduled reports
-- [ ] Custom dashboard layouts
 - [ ] Budget vs actual comparison
 - [ ] Audit trail logging
 
