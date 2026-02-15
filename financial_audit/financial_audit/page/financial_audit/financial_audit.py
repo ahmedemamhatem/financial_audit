@@ -63,6 +63,14 @@ def get_financial_audit_data(filters=None):
 		"yoy_growth": get_yoy_growth(filters),
 		"concentration_risk": get_concentration_risk(filters),
 		"weekend_transactions": get_weekend_transactions(filters),
+		# ── New advanced sections ──
+		"payment_reconciliation": get_payment_reconciliation(filters),
+		"cost_center_pl": get_cost_center_pl(filters),
+		"depreciation_audit": get_depreciation_audit(filters),
+		"aging_trend": get_aging_trend(filters),
+		"inventory_turnover": get_inventory_turnover(filters),
+		"trial_balance": get_trial_balance(filters),
+		"ratio_trend": get_ratio_trend(filters),
 	}
 
 
@@ -918,3 +926,374 @@ def get_weekend_transactions(filters):
 		"total_eom": total_eom,
 		"risk": "high" if total_weekend > 50 else ("medium" if total_weekend > 20 else "low"),
 	}
+
+
+# ═══════════════════════════════════════════
+#  NEW ADVANCED FEATURES
+# ═══════════════════════════════════════════
+
+def get_payment_reconciliation(filters):
+	"""Payment reconciliation dashboard — unreconciled payments by party with aging."""
+	unreconciled = frappe.db.sql("""
+		SELECT
+			pe.party_type,
+			pe.party,
+			pe.party_name,
+			COUNT(*) as entry_count,
+			IFNULL(SUM(pe.unallocated_amount), 0) as unallocated_amount,
+			IFNULL(SUM(pe.paid_amount), 0) as total_paid,
+			MIN(pe.posting_date) as oldest_date,
+			MAX(pe.posting_date) as latest_date,
+			DATEDIFF(%(to_date)s, MIN(pe.posting_date)) as days_oldest
+		FROM `tabPayment Entry` pe
+		WHERE pe.docstatus = 1
+			AND pe.company = %(company)s
+			AND pe.unallocated_amount > 0
+			AND pe.posting_date <= %(to_date)s
+		GROUP BY pe.party_type, pe.party
+		ORDER BY unallocated_amount DESC
+		LIMIT 30
+	""", filters, as_dict=1)
+
+	total_unallocated = sum(flt(r.unallocated_amount) for r in unreconciled)
+	total_entries = sum(r.entry_count for r in unreconciled)
+
+	# Aging buckets for unreconciled
+	buckets = frappe.db.sql("""
+		SELECT
+			CASE
+				WHEN DATEDIFF(%(to_date)s, pe.posting_date) <= 30 THEN '0-30'
+				WHEN DATEDIFF(%(to_date)s, pe.posting_date) <= 60 THEN '31-60'
+				WHEN DATEDIFF(%(to_date)s, pe.posting_date) <= 90 THEN '61-90'
+				ELSE '90+'
+			END as bucket,
+			COUNT(*) as cnt,
+			IFNULL(SUM(pe.unallocated_amount), 0) as amount
+		FROM `tabPayment Entry` pe
+		WHERE pe.docstatus = 1
+			AND pe.company = %(company)s
+			AND pe.unallocated_amount > 0
+			AND pe.posting_date <= %(to_date)s
+		GROUP BY bucket
+		ORDER BY FIELD(bucket, '0-30', '31-60', '61-90', '90+')
+	""", filters, as_dict=1)
+
+	return {
+		"items": unreconciled,
+		"buckets": buckets,
+		"total_unallocated": flt(total_unallocated, 2),
+		"total_entries": total_entries,
+		"party_count": len(unreconciled),
+		"risk": "high" if total_unallocated > 1000000 else ("medium" if total_unallocated > 100000 else "low"),
+	}
+
+
+def get_cost_center_pl(filters):
+	"""Profit & Loss by cost center — income, expenses, and net profit per cost center."""
+	data = frappe.db.sql("""
+		SELECT
+			IFNULL(gle.cost_center, 'غير محدد') as cost_center,
+			IFNULL(SUM(CASE WHEN acc.root_type = 'Income' THEN gle.credit - gle.debit ELSE 0 END), 0) as income,
+			IFNULL(SUM(CASE WHEN acc.root_type = 'Expense' AND acc.account_type = 'Cost of Goods Sold'
+				THEN gle.debit - gle.credit ELSE 0 END), 0) as cogs,
+			IFNULL(SUM(CASE WHEN acc.root_type = 'Expense' THEN gle.debit - gle.credit ELSE 0 END), 0) as expenses
+		FROM `tabGL Entry` gle
+		JOIN `tabAccount` acc ON acc.name = gle.account
+		WHERE gle.company = %(company)s
+			AND gle.posting_date BETWEEN %(from_date)s AND %(to_date)s
+			AND gle.is_cancelled = 0
+			AND IFNULL(gle.is_opening, 'No') = 'No'
+			AND acc.root_type IN ('Income', 'Expense')
+		GROUP BY gle.cost_center
+		HAVING income != 0 OR expenses != 0
+		ORDER BY income DESC
+	""", filters, as_dict=1)
+
+	total_income = sum(flt(r.income) for r in data)
+	total_expenses = sum(flt(r.expenses) for r in data)
+
+	for row in data:
+		row["gross_profit"] = flt(row.income) - flt(row.cogs)
+		row["net_profit"] = flt(row.income) - flt(row.expenses)
+		row["margin"] = flt((row["net_profit"] / row.income * 100) if row.income else 0, 1)
+		row["income_pct"] = flt((row.income / total_income * 100) if total_income else 0, 1)
+
+	return {
+		"items": data,
+		"total_income": flt(total_income, 2),
+		"total_expenses": flt(total_expenses, 2),
+		"total_net": flt(total_income - total_expenses, 2),
+	}
+
+
+def get_depreciation_audit(filters):
+	"""Depreciation schedule audit — validates asset depreciation accuracy."""
+	assets = frappe.db.sql("""
+		SELECT
+			a.name,
+			a.asset_name,
+			a.asset_category,
+			a.status,
+			a.purchase_date,
+			IFNULL(a.gross_purchase_amount, 0) as purchase_amount,
+			IFNULL(a.opening_accumulated_depreciation, 0) as opening_depreciation,
+			IFNULL(a.value_after_depreciation, 0) as current_value,
+			(IFNULL(a.gross_purchase_amount, 0) - IFNULL(a.value_after_depreciation, 0)) as total_depreciated,
+			DATEDIFF(%(to_date)s, a.purchase_date) as age_days
+		FROM `tabAsset` a
+		WHERE a.docstatus = 1
+			AND a.company = %(company)s
+		ORDER BY a.gross_purchase_amount DESC
+		LIMIT 30
+	""", filters, as_dict=1)
+
+	# Depreciation entries in period
+	dep_entries = frappe.db.sql("""
+		SELECT
+			IFNULL(SUM(je.total_debit), 0) as total_depreciation,
+			COUNT(*) as entry_count
+		FROM `tabJournal Entry` je
+		WHERE je.docstatus = 1
+			AND je.company = %(company)s
+			AND je.voucher_type = 'Depreciation Entry'
+			AND je.posting_date BETWEEN %(from_date)s AND %(to_date)s
+	""", filters, as_dict=1)[0]
+
+	total_purchase = sum(flt(a.purchase_amount) for a in assets)
+	total_current = sum(flt(a.current_value) for a in assets)
+	total_depreciated = sum(flt(a.total_depreciated) for a in assets)
+
+	# Flag anomalies
+	anomalies = []
+	for a in assets:
+		if a.status == "Partially Depreciated" and flt(a.total_depreciated) == 0:
+			anomalies.append({
+				"asset": a.name, "asset_name": a.asset_name,
+				"issue": "no_depreciation",
+				"detail": flt(a.purchase_amount, 2),
+			})
+		if flt(a.current_value) > flt(a.purchase_amount):
+			anomalies.append({
+				"asset": a.name, "asset_name": a.asset_name,
+				"issue": "value_exceeds_cost",
+				"detail": flt(a.current_value - a.purchase_amount, 2),
+			})
+		if flt(a.current_value) < 0:
+			anomalies.append({
+				"asset": a.name, "asset_name": a.asset_name,
+				"issue": "negative_value",
+				"detail": flt(a.current_value, 2),
+			})
+
+	return {
+		"items": assets,
+		"anomalies": anomalies,
+		"total_purchase": flt(total_purchase, 2),
+		"total_current": flt(total_current, 2),
+		"total_depreciated": flt(total_depreciated, 2),
+		"period_depreciation": flt(dep_entries.total_depreciation, 2),
+		"period_dep_entries": dep_entries.entry_count,
+		"depreciation_rate": flt((total_depreciated / total_purchase * 100) if total_purchase else 0, 1),
+	}
+
+
+def get_aging_trend(filters):
+	"""AR aging bucket trend — shows how aging distribution changes month by month."""
+	from frappe.utils import add_months, get_first_day, get_last_day
+
+	# Get monthly snapshots for the last 6 months from to_date
+	months_data = []
+	current_date = getdate(filters.to_date)
+
+	for i in range(6):
+		snapshot_date = add_months(current_date, -i)
+		snapshot_end = get_last_day(snapshot_date) if i > 0 else current_date
+
+		buckets = frappe.db.sql("""
+			SELECT
+				IFNULL(SUM(CASE WHEN DATEDIFF(%(snap)s, si.posting_date) <= 30
+					THEN si.outstanding_amount ELSE 0 END), 0) as bucket_0_30,
+				IFNULL(SUM(CASE WHEN DATEDIFF(%(snap)s, si.posting_date) BETWEEN 31 AND 60
+					THEN si.outstanding_amount ELSE 0 END), 0) as bucket_31_60,
+				IFNULL(SUM(CASE WHEN DATEDIFF(%(snap)s, si.posting_date) BETWEEN 61 AND 90
+					THEN si.outstanding_amount ELSE 0 END), 0) as bucket_61_90,
+				IFNULL(SUM(CASE WHEN DATEDIFF(%(snap)s, si.posting_date) > 90
+					THEN si.outstanding_amount ELSE 0 END), 0) as bucket_90_plus,
+				IFNULL(SUM(si.outstanding_amount), 0) as total_outstanding,
+				COUNT(*) as invoice_count
+			FROM `tabSales Invoice` si
+			WHERE si.docstatus = 1
+				AND si.company = %(company)s
+				AND si.outstanding_amount > 0
+				AND si.posting_date <= %(snap)s
+		""", {"company": filters.company, "snap": str(snapshot_end)}, as_dict=1)[0]
+
+		months_data.append({
+			"month": str(snapshot_end)[:7],
+			"date": str(snapshot_end),
+			"bucket_0_30": flt(buckets.bucket_0_30, 2),
+			"bucket_31_60": flt(buckets.bucket_31_60, 2),
+			"bucket_61_90": flt(buckets.bucket_61_90, 2),
+			"bucket_90_plus": flt(buckets.bucket_90_plus, 2),
+			"total": flt(buckets.total_outstanding, 2),
+			"count": buckets.invoice_count,
+		})
+
+	months_data.reverse()
+	return {"months": months_data}
+
+
+def get_inventory_turnover(filters):
+	"""Inventory turnover by item — COGS-based turnover ratio and days on hand."""
+	data = frappe.db.sql("""
+		SELECT
+			sle.item_code,
+			item.item_name,
+			item.item_group,
+			IFNULL(bin.actual_qty, 0) as current_qty,
+			IFNULL(bin.stock_value, 0) as current_value,
+			IFNULL(SUM(CASE WHEN sle.actual_qty < 0 THEN ABS(sle.stock_value_difference) ELSE 0 END), 0) as cogs_value,
+			IFNULL(SUM(CASE WHEN sle.actual_qty < 0 THEN ABS(sle.actual_qty) ELSE 0 END), 0) as qty_sold,
+			IFNULL(SUM(CASE WHEN sle.actual_qty > 0 THEN sle.actual_qty ELSE 0 END), 0) as qty_received,
+			COUNT(DISTINCT sle.voucher_no) as txn_count
+		FROM `tabStock Ledger Entry` sle
+		LEFT JOIN `tabItem` item ON item.name = sle.item_code
+		LEFT JOIN (
+			SELECT item_code, SUM(actual_qty) as actual_qty, SUM(stock_value) as stock_value
+			FROM `tabBin`
+			WHERE warehouse IN (SELECT name FROM `tabWarehouse` WHERE company = %(company)s)
+			GROUP BY item_code
+		) bin ON bin.item_code = sle.item_code
+		WHERE sle.company = %(company)s
+			AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s
+			AND sle.is_cancelled = 0
+		GROUP BY sle.item_code
+		HAVING current_qty > 0 OR cogs_value > 0
+		ORDER BY cogs_value DESC
+		LIMIT 30
+	""", filters, as_dict=1)
+
+	days = max(date_diff(filters.to_date, filters.from_date), 1)
+
+	for row in data:
+		avg_inventory = flt(row.current_value)
+		cogs = flt(row.cogs_value)
+		if avg_inventory > 0 and cogs > 0:
+			row["turnover_ratio"] = flt(cogs / avg_inventory, 2)
+			row["days_on_hand"] = flt(avg_inventory / cogs * days, 0)
+		else:
+			row["turnover_ratio"] = 0
+			row["days_on_hand"] = flt(days) if avg_inventory > 0 else 0
+
+	return {"items": data, "period_days": days}
+
+
+def get_trial_balance(filters):
+	"""Trial balance — opening + period movement + closing for all accounts."""
+	data = frappe.db.sql("""
+		SELECT
+			acc.name as account,
+			acc.account_name,
+			acc.root_type,
+			acc.is_group,
+			acc.parent_account,
+			IFNULL(SUM(CASE WHEN gle.posting_date < %(from_date)s THEN gle.debit ELSE 0 END), 0) as opening_debit,
+			IFNULL(SUM(CASE WHEN gle.posting_date < %(from_date)s THEN gle.credit ELSE 0 END), 0) as opening_credit,
+			IFNULL(SUM(CASE WHEN gle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN gle.debit ELSE 0 END), 0) as period_debit,
+			IFNULL(SUM(CASE WHEN gle.posting_date BETWEEN %(from_date)s AND %(to_date)s THEN gle.credit ELSE 0 END), 0) as period_credit,
+			IFNULL(SUM(CASE WHEN gle.posting_date <= %(to_date)s THEN gle.debit ELSE 0 END), 0) as closing_debit,
+			IFNULL(SUM(CASE WHEN gle.posting_date <= %(to_date)s THEN gle.credit ELSE 0 END), 0) as closing_credit
+		FROM `tabAccount` acc
+		LEFT JOIN `tabGL Entry` gle ON gle.account = acc.name
+			AND gle.company = %(company)s
+			AND gle.is_cancelled = 0
+			AND gle.posting_date <= %(to_date)s
+		WHERE acc.company = %(company)s
+			AND acc.is_group = 0
+		GROUP BY acc.name
+		HAVING (opening_debit != 0 OR opening_credit != 0 OR period_debit != 0
+			OR period_credit != 0 OR closing_debit != 0 OR closing_credit != 0)
+		ORDER BY acc.root_type, acc.name
+	""", filters, as_dict=1)
+
+	for row in data:
+		row["opening_balance"] = flt(row.opening_debit - row.opening_credit, 2)
+		row["closing_balance"] = flt(row.closing_debit - row.closing_credit, 2)
+
+	totals = {
+		"opening_debit": flt(sum(r.opening_debit for r in data), 2),
+		"opening_credit": flt(sum(r.opening_credit for r in data), 2),
+		"period_debit": flt(sum(r.period_debit for r in data), 2),
+		"period_credit": flt(sum(r.period_credit for r in data), 2),
+		"closing_debit": flt(sum(r.closing_debit for r in data), 2),
+		"closing_credit": flt(sum(r.closing_credit for r in data), 2),
+	}
+
+	return {"items": data, "totals": totals}
+
+
+def get_ratio_trend(filters):
+	"""Financial ratio trend — monthly DSO, DPO, current ratio, net margin over 6 months."""
+	from frappe.utils import add_months, get_first_day, get_last_day
+
+	current_date = getdate(filters.to_date)
+	months_data = []
+
+	for i in range(6):
+		month_end = get_last_day(add_months(current_date, -i)) if i > 0 else current_date
+		month_start = get_first_day(month_end)
+
+		# P&L for the month
+		pnl = frappe.db.sql("""
+			SELECT
+				IFNULL(SUM(CASE WHEN acc.root_type = 'Income' THEN gle.credit - gle.debit ELSE 0 END), 0) as revenue,
+				IFNULL(SUM(CASE WHEN acc.root_type = 'Expense' AND acc.account_type = 'Cost of Goods Sold'
+					THEN gle.debit - gle.credit ELSE 0 END), 0) as cogs,
+				IFNULL(SUM(CASE WHEN acc.root_type = 'Expense' THEN gle.debit - gle.credit ELSE 0 END), 0) as expenses
+			FROM `tabGL Entry` gle
+			JOIN `tabAccount` acc ON acc.name = gle.account
+			WHERE gle.company = %(company)s
+				AND gle.posting_date BETWEEN %(ms)s AND %(me)s
+				AND gle.is_cancelled = 0
+				AND IFNULL(gle.is_opening, 'No') = 'No'
+		""", {"company": filters.company, "ms": str(month_start), "me": str(month_end)}, as_dict=1)[0]
+
+		# Balance sheet at month end
+		bal = frappe.db.sql("""
+			SELECT
+				IFNULL(SUM(CASE WHEN acc.account_type = 'Receivable' THEN gle.debit - gle.credit ELSE 0 END), 0) as ar,
+				IFNULL(SUM(CASE WHEN acc.account_type = 'Payable' THEN gle.credit - gle.debit ELSE 0 END), 0) as ap,
+				IFNULL(SUM(CASE WHEN acc.account_type IN ('Bank', 'Cash') THEN gle.debit - gle.credit ELSE 0 END), 0) as cash,
+				IFNULL(SUM(CASE WHEN acc.root_type = 'Asset' AND acc.account_type IN ('Bank', 'Cash', 'Receivable', 'Stock')
+					THEN gle.debit - gle.credit ELSE 0 END), 0) as current_assets
+			FROM `tabGL Entry` gle
+			JOIN `tabAccount` acc ON acc.name = gle.account
+			WHERE gle.company = %(company)s
+				AND gle.posting_date <= %(me)s
+				AND gle.is_cancelled = 0
+		""", {"company": filters.company, "me": str(month_end)}, as_dict=1)[0]
+
+		days_in_month = max(date_diff(month_end, month_start), 1)
+		revenue = max(flt(pnl.revenue), 0)
+		cogs = max(flt(pnl.cogs), 0)
+		expenses = flt(pnl.expenses)
+		ar = max(flt(bal.ar), 0)
+		ap = max(flt(bal.ap), 0)
+		cash = flt(bal.cash)
+		current_assets = flt(bal.current_assets)
+		net = revenue - expenses
+
+		months_data.append({
+			"month": str(month_end)[:7],
+			"revenue": flt(revenue, 2),
+			"net_profit": flt(net, 2),
+			"net_margin": flt((net / revenue * 100) if revenue else 0, 1),
+			"gross_margin": flt(((revenue - cogs) / revenue * 100) if revenue else 0, 1),
+			"dso": flt((ar / revenue * days_in_month) if revenue else 0, 1),
+			"dpo": flt((ap / cogs * days_in_month) if cogs else 0, 1),
+			"current_ratio": flt((current_assets / ap) if ap > 0 else 0, 2),
+			"cash_ratio": flt((cash / ap) if ap > 0 else 0, 2),
+		})
+
+	months_data.reverse()
+	return {"months": months_data}

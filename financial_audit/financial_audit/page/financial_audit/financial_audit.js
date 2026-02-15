@@ -121,6 +121,73 @@ const FA_TRANSLATIONS = {
 	sec_weekend_txn: { ar: 'معاملات نهاية الشهر وعطلات نهاية الأسبوع', en: 'Month-End & Weekend Transactions' },
 	sec_weekend_txn_desc: { ar: 'كشف المعاملات في أوقات غير اعتيادية — مؤشر تلاعب أو ضعف رقابة', en: 'Detect transactions at unusual times — indicator of manipulation or weak controls' },
 
+	// ── New Advanced Sections ──
+	sec_payment_recon: { ar: 'لوحة تسوية المدفوعات', en: 'Payment Reconciliation Dashboard' },
+	sec_payment_recon_desc: { ar: 'المدفوعات غير المسواة حسب الطرف مع تحليل التقادم — مؤشر خطر حرج لإدارة النقد', en: 'Unreconciled payments by party with aging analysis — critical cash management risk indicator' },
+	sec_cost_center_pl: { ar: 'قائمة الدخل حسب مركز التكلفة', en: 'Cost Center P&L Report' },
+	sec_cost_center_pl_desc: { ar: 'الإيرادات والمصروفات وصافي الربح لكل مركز تكلفة — لتقييم ربحية كل قسم', en: 'Revenue, expenses, and net profit per cost center — to evaluate profitability of each department' },
+	sec_depreciation: { ar: 'تدقيق جداول الإهلاك', en: 'Depreciation Schedule Audit' },
+	sec_depreciation_desc: { ar: 'مراجعة دقة إهلاك الأصول وكشف الحالات الشاذة مثل أصول بدون إهلاك أو قيم سالبة', en: 'Review asset depreciation accuracy and detect anomalies like assets with no depreciation or negative values' },
+	sec_aging_trend: { ar: 'اتجاه تقادم الذمم المدينة', en: 'AR Aging Bucket Trend' },
+	sec_aging_trend_desc: { ar: 'تتبع تطور فئات التقادم شهرياً — هل التحصيل يتحسن أم يتدهور؟', en: 'Track aging bucket evolution monthly — is collection improving or deteriorating?' },
+	sec_inv_turnover: { ar: 'معدل دوران المخزون حسب الصنف', en: 'Inventory Turnover by Item' },
+	sec_inv_turnover_desc: { ar: 'نسبة دوران المخزون وأيام الاحتفاظ لكل صنف — لكشف المخزون الراكد ورأس المال المحجوز', en: 'Inventory turnover ratio and days on hand per item — to detect slow-moving stock and locked capital' },
+	sec_trial_balance: { ar: 'ميزان المراجعة', en: 'Trial Balance' },
+	sec_trial_balance_desc: { ar: 'ميزان المراجعة مع رصيد أول الفترة والحركة والرصيد الختامي — التقرير الأساسي للمدقق', en: 'Trial balance with opening, period movement, and closing — the fundamental auditor report' },
+	sec_ratio_trend: { ar: 'اتجاه النسب المالية الشهرية', en: 'Monthly Financial Ratio Trend' },
+	sec_ratio_trend_desc: { ar: 'تتبع DSO و DPO ونسبة التداول وهامش الربح شهرياً على مدار 6 أشهر', en: 'Track DSO, DPO, current ratio, and profit margins monthly over 6 months' },
+
+	// ── New Table Headers ──
+	th_party: { ar: 'الطرف', en: 'Party' },
+	th_party_type: { ar: 'نوع الطرف', en: 'Party Type' },
+	th_unallocated: { ar: 'غير مسوى', en: 'Unallocated' },
+	th_total_paid: { ar: 'إجمالي المدفوع', en: 'Total Paid' },
+	th_oldest: { ar: 'الأقدم', en: 'Oldest' },
+	th_cost_center: { ar: 'مركز التكلفة', en: 'Cost Center' },
+	th_income: { ar: 'الإيرادات', en: 'Income' },
+	th_expenses: { ar: 'المصروفات', en: 'Expenses' },
+	th_net: { ar: 'الصافي', en: 'Net' },
+	th_margin_pct: { ar: 'الهامش %', en: 'Margin %' },
+	th_share: { ar: 'الحصة', en: 'Share' },
+	th_asset: { ar: 'الأصل', en: 'Asset' },
+	th_category: { ar: 'الفئة', en: 'Category' },
+	th_purchase_amt: { ar: 'قيمة الشراء', en: 'Purchase Amount' },
+	th_current_val: { ar: 'القيمة الحالية', en: 'Current Value' },
+	th_depreciated: { ar: 'المهلك', en: 'Depreciated' },
+	th_age_days: { ar: 'العمر (يوم)', en: 'Age (Days)' },
+	th_issue: { ar: 'المشكلة', en: 'Issue' },
+	th_bucket: { ar: 'الفئة', en: 'Bucket' },
+	th_turnover: { ar: 'معدل الدوران', en: 'Turnover' },
+	th_days_on_hand: { ar: 'أيام الاحتفاظ', en: 'Days on Hand' },
+	th_qty_sold: { ar: 'الكمية المباعة', en: 'Qty Sold' },
+	th_opening: { ar: 'رصيد أول', en: 'Opening' },
+	th_period_dr: { ar: 'مدين الفترة', en: 'Period Dr' },
+	th_period_cr: { ar: 'دائن الفترة', en: 'Period Cr' },
+	th_closing: { ar: 'رصيد ختامي', en: 'Closing' },
+	th_root_type: { ar: 'النوع الرئيسي', en: 'Root Type' },
+	th_dso: { ar: 'أيام التحصيل', en: 'DSO' },
+	th_dpo: { ar: 'أيام السداد', en: 'DPO' },
+	th_current_ratio: { ar: 'نسبة التداول', en: 'Current Ratio' },
+	th_net_margin: { ar: 'هامش صافي', en: 'Net Margin' },
+	th_gross_margin_col: { ar: 'هامش إجمالي', en: 'Gross Margin' },
+
+	// ── New labels ──
+	lbl_total_unallocated: { ar: 'إجمالي غير المسوى', en: 'Total Unallocated' },
+	lbl_recon_entries: { ar: 'قيود غير مسواة', en: 'Unreconciled Entries' },
+	lbl_recon_parties: { ar: 'أطراف', en: 'Parties' },
+	lbl_dep_total_purchase: { ar: 'إجمالي الشراء', en: 'Total Purchase' },
+	lbl_dep_total_current: { ar: 'القيمة الحالية', en: 'Total Current' },
+	lbl_dep_period: { ar: 'إهلاك الفترة', en: 'Period Depreciation' },
+	lbl_dep_rate: { ar: 'نسبة الإهلاك', en: 'Depreciation Rate' },
+	lbl_anomalies: { ar: 'حالات شاذة', en: 'Anomalies' },
+	lbl_no_depreciation: { ar: 'بدون إهلاك', en: 'No Depreciation' },
+	lbl_value_exceeds: { ar: 'القيمة تتجاوز التكلفة', en: 'Value Exceeds Cost' },
+	lbl_negative_value: { ar: 'قيمة سالبة', en: 'Negative Value' },
+	lbl_period_days: { ar: 'أيام الفترة', en: 'Period Days' },
+	lbl_slow_moving: { ar: 'بطيء الحركة', en: 'Slow Moving' },
+	lbl_normal: { ar: 'طبيعي', en: 'Normal' },
+	lbl_fast: { ar: 'سريع الحركة', en: 'Fast Moving' },
+
 	// ── AI Section ──
 	ai_section_title: { ar: 'التحليل الذكي (AI)', en: 'AI Analysis' },
 
@@ -408,6 +475,13 @@ class FinancialAuditDashboard {
 			{ key: 'duplicate-payments', label_key: 'sec_duplicate_payments' },
 			{ key: 'concentration', label_key: 'sec_concentration' },
 			{ key: 'weekend-txn', label_key: 'sec_weekend_txn' },
+			{ key: 'payment-recon', label_key: 'sec_payment_recon' },
+			{ key: 'cost-center-pl', label_key: 'sec_cost_center_pl' },
+			{ key: 'depreciation', label_key: 'sec_depreciation' },
+			{ key: 'aging-trend', label_key: 'sec_aging_trend' },
+			{ key: 'inv-turnover', label_key: 'sec_inv_turnover' },
+			{ key: 'trial-balance', label_key: 'sec_trial_balance' },
+			{ key: 'ratio-trend', label_key: 'sec_ratio_trend' },
 		];
 		this.load_layout_prefs();
 
@@ -628,6 +702,37 @@ class FinancialAuditDashboard {
 					this.t('sec_weekend_txn'), 'weekend-txn-body',
 					this.t('sec_weekend_txn_desc'))}
 
+				<!-- ═══ NEW ADVANCED FEATURES ═══ -->
+				<div class="audit-divider audit-divider-new"><span><i class="fa fa-search-plus"></i> ${this.lang === 'ar' ? 'تحليلات متقدمة جديدة' : 'New Advanced Analytics'}</span></div>
+
+				${this.make_section('data-section', 'fa-chain-broken', '#fef2f2', '#dc2626',
+					this.t('sec_payment_recon'), 'payment-recon-body',
+					this.t('sec_payment_recon_desc'))}
+
+				${this.make_section('data-section', 'fa-sitemap', '#ecfdf5', '#059669',
+					this.t('sec_cost_center_pl'), 'cost-center-pl-body',
+					this.t('sec_cost_center_pl_desc'))}
+
+				${this.make_section('data-section', 'fa-building', '#fff7ed', '#ea580c',
+					this.t('sec_depreciation'), 'depreciation-body',
+					this.t('sec_depreciation_desc'))}
+
+				${this.make_chart_section('fa-area-chart', '#fdf2f8', '#be185d',
+					this.t('sec_aging_trend'), 'aging-trend', 'aging-trend-stats',
+					this.t('sec_aging_trend_desc'))}
+
+				${this.make_section('data-section', 'fa-refresh', '#f0fdfa', '#0d9488',
+					this.t('sec_inv_turnover'), 'inv-turnover-body',
+					this.t('sec_inv_turnover_desc'))}
+
+				${this.make_section('data-section', 'fa-calculator', '#eef1ff', '#4338ca',
+					this.t('sec_trial_balance'), 'trial-balance-body',
+					this.t('sec_trial_balance_desc'))}
+
+				${this.make_chart_section('fa-line-chart', '#f5f3ff', '#7c3aed',
+					this.t('sec_ratio_trend'), 'ratio-trend', 'ratio-trend-stats',
+					this.t('sec_ratio_trend_desc'))}
+
 			</div>
 		`);
 
@@ -668,6 +773,16 @@ class FinancialAuditDashboard {
 		this.$duplicate_payments = this.page.main.find('.duplicate-payments-body');
 		this.$concentration = this.page.main.find('.concentration-body');
 		this.$weekend_txn = this.page.main.find('.weekend-txn-body');
+		// New advanced sections
+		this.$payment_recon = this.page.main.find('.payment-recon-body');
+		this.$cost_center_pl = this.page.main.find('.cost-center-pl-body');
+		this.$depreciation = this.page.main.find('.depreciation-body');
+		this.$aging_trend_chart = this.page.main.find('.aging-trend-chart');
+		this.$aging_trend_stats = this.page.main.find('.aging-trend-stats');
+		this.$inv_turnover = this.page.main.find('.inv-turnover-body');
+		this.$trial_balance = this.page.main.find('.trial-balance-body');
+		this.$ratio_trend_chart = this.page.main.find('.ratio-trend-chart');
+		this.$ratio_trend_stats = this.page.main.find('.ratio-trend-stats');
 
 		// Toggle all sections via header click (including AI)
 		this.page.main.on('click', '.section-header', function(e) {
@@ -785,6 +900,14 @@ class FinancialAuditDashboard {
 		this.render_duplicate_payments();
 		this.render_concentration_risk();
 		this.render_weekend_transactions();
+		// New advanced sections
+		this.render_payment_reconciliation();
+		this.render_cost_center_pl();
+		this.render_depreciation_audit();
+		this.render_aging_trend_chart();
+		this.render_inventory_turnover();
+		this.render_trial_balance();
+		this.render_ratio_trend_chart();
 	}
 
 	// ─── ECharts Helper ─────────────────────────────────────
@@ -1909,6 +2032,35 @@ class FinancialAuditDashboard {
 - إجمالي معاملات نهاية الشهر: ${wt.total_eom}
 - مستوى الخطر: ${wt.risk}` : 'لا تتوفر بيانات';
 
+		// New advanced analytics data for AI
+		const pr = this.data.payment_reconciliation;
+		const pr_text = pr ? `- إجمالي المدفوعات غير المسواة: ${pr.total_unallocated?.toLocaleString()}
+- عدد القيود غير المسواة: ${pr.total_entries}
+- عدد الأطراف: ${pr.party_count}
+- مستوى الخطر: ${pr.risk}` : 'لا تتوفر بيانات';
+
+		const ccpl = this.data.cost_center_pl;
+		const ccpl_text = ccpl ? (ccpl.items || []).map(c =>
+			`${c.cost_center}: إيرادات ${c.income?.toLocaleString()} - مصروفات ${c.expenses?.toLocaleString()} - صافي ${c.net_profit?.toLocaleString()} (هامش ${c.margin}%)`
+		).join('\n') : 'لا تتوفر بيانات';
+
+		const dep = this.data.depreciation_audit;
+		const dep_text = dep ? `- إجمالي الشراء: ${dep.total_purchase?.toLocaleString()}
+- القيمة الحالية: ${dep.total_current?.toLocaleString()}
+- نسبة الإهلاك: ${dep.depreciation_rate}%
+- إهلاك الفترة: ${dep.period_depreciation?.toLocaleString()}
+- حالات شاذة: ${dep.anomalies?.length || 0}` : 'لا تتوفر بيانات';
+
+		const at = this.data.aging_trend;
+		const at_text = at ? (at.months || []).map(m =>
+			`${m.month}: 0-30=${m.bucket_0_30?.toLocaleString()} | 31-60=${m.bucket_31_60?.toLocaleString()} | 61-90=${m.bucket_61_90?.toLocaleString()} | 90+=${m.bucket_90_plus?.toLocaleString()} | total=${m.total?.toLocaleString()}`
+		).join('\n') : 'لا تتوفر بيانات';
+
+		const rt = this.data.ratio_trend;
+		const rt_text = rt ? (rt.months || []).map(m =>
+			`${m.month}: DSO=${m.dso} DPO=${m.dpo} CR=${m.current_ratio} NM=${m.net_margin}% GM=${m.gross_margin}%`
+		).join('\n') : 'لا تتوفر بيانات';
+
 		const is_ar = this.lang === 'ar';
 		const lang_instruction = is_ar
 			? 'قدم التقرير منظماً بعناوين واضحة ونقاط محددة باللغة العربية. استخدم أرقام ونسب محددة من البيانات المقدمة.'
@@ -2026,6 +2178,21 @@ ${custom_dt}
 
 ## Installed Apps:
 ${installed_apps}
+
+## Payment Reconciliation (Unreconciled Payments):
+${pr_text || no_data_text}
+
+## Cost Center Profitability:
+${ccpl_text || no_data_text}
+
+## Depreciation Audit:
+${dep_text || no_data_text}
+
+## AR Aging Trend (Monthly Buckets):
+${at_text || no_data_text}
+
+## Monthly Financial Ratio Trend:
+${rt_text || no_data_text}
 
 ${requirements}
 
@@ -2342,7 +2509,7 @@ ${lang_instruction}`;
 			}
 		});
 		// Handle the advanced divider — hide if all advanced sections are hidden
-		const advanced_keys = ['working-capital', 'yoy-growth', 'benford-chart', 'duplicate-payments', 'concentration', 'weekend-txn'];
+		const advanced_keys = ['working-capital', 'yoy-growth', 'benford-chart', 'duplicate-payments', 'concentration', 'weekend-txn', 'payment-recon', 'cost-center-pl', 'depreciation', 'aging-trend', 'inv-turnover', 'trial-balance', 'ratio-trend'];
 		const all_advanced_hidden = advanced_keys.every(k => this.hidden_sections.has(k));
 		const $divider = $page.find('.audit-divider');
 		if (all_advanced_hidden) {
@@ -2420,6 +2587,296 @@ ${lang_instruction}`;
 				dlg.set_value(fname, 1);
 			});
 		});
+	}
+
+	// ─── NEW ADVANCED RENDER FUNCTIONS ─────────────────────
+
+	render_payment_reconciliation() {
+		const d = this.data.payment_reconciliation;
+		if (!d || !d.items || !d.items.length) { this.$payment_recon.html(this.empty_msg()); return; }
+
+		const risk_cls = d.risk === 'high' ? 'risk-high' : (d.risk === 'medium' ? 'risk-medium' : 'risk-low');
+		let html = `<div class="recon-summary">
+			<div class="recon-kpi ${risk_cls}"><strong>${this.fc(d.total_unallocated)}</strong><span>${this.t('lbl_total_unallocated')}</span></div>
+			<div class="recon-kpi"><strong>${d.total_entries}</strong><span>${this.t('lbl_recon_entries')}</span></div>
+			<div class="recon-kpi"><strong>${d.party_count}</strong><span>${this.t('lbl_recon_parties')}</span></div>
+		</div>`;
+
+		if (d.buckets && d.buckets.length) {
+			html += `<div class="recon-buckets">`;
+			d.buckets.forEach(b => {
+				const cls = b.bucket === '90+' ? 'bucket-danger' : (b.bucket === '61-90' ? 'bucket-warning' : (b.bucket === '31-60' ? 'bucket-caution' : 'bucket-ok'));
+				html += `<div class="recon-bucket ${cls}"><div class="bucket-label">${b.bucket} ${this.t('days')}</div><div class="bucket-amount">${this.fc(b.amount)}</div><div class="bucket-count">${b.cnt} ${this.t('th_entries')}</div></div>`;
+			});
+			html += `</div>`;
+		}
+
+		html += `<div class="table-responsive"><table class="audit-table"><thead><tr>
+			<th>#</th><th>${this.t('th_party')}</th><th>${this.t('th_party_type')}</th>
+			<th>${this.t('th_unallocated')}</th><th>${this.t('th_total_paid')}</th>
+			<th>${this.t('th_count')}</th><th>${this.t('th_oldest')}</th><th>${this.t('th_age')}</th>
+		</tr></thead><tbody>`;
+		d.items.forEach((r, i) => {
+			html += `<tr><td>${i+1}</td><td class="link-cell"><a href="/app/${(r.party_type||'').toLowerCase().replace(/ /g,'-')}/${encodeURIComponent(r.party)}" target="_blank">${r.party_name || r.party}</a></td>
+			<td>${r.party_type || ''}</td>
+			<td class="currency-cell danger-text">${this.fc(r.unallocated_amount)}</td>
+			<td class="currency-cell">${this.fc(r.total_paid)}</td>
+			<td>${r.entry_count}</td>
+			<td>${r.oldest_date || ''}</td>
+			<td>${this.aging_badge(r.days_oldest || 0)}</td></tr>`;
+		});
+		html += '</tbody></table></div>';
+		this.$payment_recon.html(html);
+	}
+
+	render_cost_center_pl() {
+		const d = this.data.cost_center_pl;
+		if (!d || !d.items || !d.items.length) { this.$cost_center_pl.html(this.empty_msg()); return; }
+
+		let html = `<div class="table-responsive"><table class="audit-table"><thead><tr>
+			<th>${this.t('th_cost_center')}</th><th>${this.t('th_income')}</th>
+			<th>${this.t('cogs')}</th><th>${this.t('th_expenses')}</th>
+			<th>${this.t('gross_profit')}</th><th>${this.t('th_net')}</th>
+			<th>${this.t('th_margin_pct')}</th><th>${this.t('th_share')}</th>
+		</tr></thead><tbody>`;
+
+		d.items.forEach(r => {
+			const net_cls = r.net_profit >= 0 ? 'profit-text' : 'danger-text';
+			const margin_cls = r.margin >= 0 ? 'profit-text' : 'danger-text';
+			const cc_name = (r.cost_center || '').split(' - ')[0];
+			html += `<tr>
+				<td class="link-cell"><a href="/app/cost-center/${encodeURIComponent(r.cost_center)}" target="_blank">${cc_name}</a></td>
+				<td class="currency-cell">${this.fc(r.income)}</td>
+				<td class="currency-cell">${this.fc(r.cogs)}</td>
+				<td class="currency-cell">${this.fc(r.expenses)}</td>
+				<td class="currency-cell">${this.fc(r.gross_profit)}</td>
+				<td class="currency-cell ${net_cls}">${this.fc(r.net_profit)}</td>
+				<td class="${margin_cls}">${r.margin}%</td>
+				<td>${r.income_pct}%</td>
+			</tr>`;
+		});
+
+		html += `<tr class="total-row"><td><strong>${this.t('th_total')}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(d.total_income)}</strong></td>
+			<td class="currency-cell"></td>
+			<td class="currency-cell"><strong>${this.fc(d.total_expenses)}</strong></td>
+			<td class="currency-cell"></td>
+			<td class="currency-cell"><strong class="${d.total_net >= 0 ? 'profit-text' : 'danger-text'}">${this.fc(d.total_net)}</strong></td>
+			<td></td><td></td></tr>`;
+		html += '</tbody></table></div>';
+		this.$cost_center_pl.html(html);
+	}
+
+	render_depreciation_audit() {
+		const d = this.data.depreciation_audit;
+		if (!d || !d.items || !d.items.length) { this.$depreciation.html(this.empty_msg()); return; }
+
+		let html = `<div class="recon-summary">
+			<div class="recon-kpi"><strong>${this.fc(d.total_purchase)}</strong><span>${this.t('lbl_dep_total_purchase')}</span></div>
+			<div class="recon-kpi"><strong>${this.fc(d.total_current)}</strong><span>${this.t('lbl_dep_total_current')}</span></div>
+			<div class="recon-kpi"><strong>${this.fc(d.period_depreciation)}</strong><span>${this.t('lbl_dep_period')}</span></div>
+			<div class="recon-kpi"><strong>${d.depreciation_rate}%</strong><span>${this.t('lbl_dep_rate')}</span></div>
+		</div>`;
+
+		if (d.anomalies && d.anomalies.length) {
+			html += `<div class="anomaly-section"><h4 class="anomaly-title"><i class="fa fa-exclamation-triangle"></i> ${this.t('lbl_anomalies')} (${d.anomalies.length})</h4><ul class="anomaly-list">`;
+			d.anomalies.forEach(a => {
+				const issue_label = a.issue === 'no_depreciation' ? this.t('lbl_no_depreciation')
+					: a.issue === 'value_exceeds_cost' ? this.t('lbl_value_exceeds')
+					: this.t('lbl_negative_value');
+				html += `<li class="anomaly-item"><a href="/app/asset/${encodeURIComponent(a.asset)}" target="_blank">${a.asset_name || a.asset}</a> — <span class="anomaly-badge">${issue_label}</span> (${this.fc(a.detail)})</li>`;
+			});
+			html += `</ul></div>`;
+		}
+
+		html += `<div class="table-responsive"><table class="audit-table"><thead><tr>
+			<th>#</th><th>${this.t('th_asset')}</th><th>${this.t('th_category')}</th>
+			<th>${this.t('th_status')}</th><th>${this.t('th_purchase_amt')}</th>
+			<th>${this.t('th_depreciated')}</th><th>${this.t('th_current_val')}</th>
+			<th>${this.t('th_age_days')}</th>
+		</tr></thead><tbody>`;
+		d.items.forEach((r, i) => {
+			const dep_pct = r.purchase_amount ? ((r.total_depreciated / r.purchase_amount) * 100).toFixed(1) : '0';
+			html += `<tr><td>${i+1}</td>
+				<td class="link-cell"><a href="/app/asset/${encodeURIComponent(r.name)}" target="_blank">${r.asset_name || r.name}</a></td>
+				<td>${r.asset_category || ''}</td>
+				<td><span class="status-badge status-${(r.status||'').toLowerCase().replace(/ /g,'-')}">${r.status || ''}</span></td>
+				<td class="currency-cell">${this.fc(r.purchase_amount)}</td>
+				<td class="currency-cell">${this.fc(r.total_depreciated)} <small>(${dep_pct}%)</small></td>
+				<td class="currency-cell">${this.fc(r.current_value)}</td>
+				<td>${r.age_days || 0}</td></tr>`;
+		});
+		html += '</tbody></table></div>';
+		this.$depreciation.html(html);
+	}
+
+	render_aging_trend_chart() {
+		const d = this.data.aging_trend;
+		if (!d || !d.months || !d.months.length) {
+			this.$aging_trend_chart.html(this.empty_msg());
+			return;
+		}
+
+		const months = d.months.map(m => m.month);
+		const b1 = d.months.map(m => m.bucket_0_30);
+		const b2 = d.months.map(m => m.bucket_31_60);
+		const b3 = d.months.map(m => m.bucket_61_90);
+		const b4 = d.months.map(m => m.bucket_90_plus);
+		const me = this;
+
+		const options = {
+			tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' },
+				formatter: function(params) {
+					let s = `<strong>${params[0].axisValue}</strong><br/>`;
+					params.forEach(p => { s += `${p.marker} ${p.seriesName}: ${me.fc(p.value)}<br/>`; });
+					return s;
+				}
+			},
+			legend: { data: ['0-30', '31-60', '61-90', '90+'], bottom: 0, textStyle: { fontFamily: 'Cairo' } },
+			grid: { left: '3%', right: '3%', bottom: '15%', top: '5%', containLabel: true },
+			xAxis: { type: 'category', data: months, axisLabel: { fontFamily: 'Cairo', fontSize: 11 } },
+			yAxis: { type: 'value', axisLabel: { fontFamily: 'Cairo', fontSize: 11, formatter: v => me.short_number(v) } },
+			series: [
+				{ name: '0-30', type: 'bar', stack: 'aging', data: b1, itemStyle: { color: '#22c55e' } },
+				{ name: '31-60', type: 'bar', stack: 'aging', data: b2, itemStyle: { color: '#eab308' } },
+				{ name: '61-90', type: 'bar', stack: 'aging', data: b3, itemStyle: { color: '#f97316' } },
+				{ name: '90+', type: 'bar', stack: 'aging', data: b4, itemStyle: { color: '#ef4444' } },
+			]
+		};
+
+		setTimeout(() => this.init_echart(this.$aging_trend_chart[0], options), 300);
+
+		// Stats
+		const latest = d.months[d.months.length - 1];
+		const earliest = d.months[0];
+		const trend = latest.total > earliest.total ? (this.lang === 'ar' ? 'متزايد ⬆' : 'Increasing ⬆') : (this.lang === 'ar' ? 'متناقص ⬇' : 'Decreasing ⬇');
+		const trend_cls = latest.total > earliest.total ? 'danger-text' : 'profit-text';
+		this.$aging_trend_stats.html(`
+			<div class="chart-stat"><span class="stat-label">${this.lang === 'ar' ? 'الاتجاه' : 'Trend'}</span><span class="stat-value ${trend_cls}">${trend}</span></div>
+			<div class="chart-stat"><span class="stat-label">${this.lang === 'ar' ? 'الأحدث' : 'Latest'}</span><span class="stat-value">${this.fc(latest.total)}</span></div>
+			<div class="chart-stat"><span class="stat-label">${this.lang === 'ar' ? 'الأقدم' : 'Earliest'}</span><span class="stat-value">${this.fc(earliest.total)}</span></div>
+			<div class="chart-stat"><span class="stat-label">90+</span><span class="stat-value danger-text">${this.fc(latest.bucket_90_plus)}</span></div>
+		`);
+	}
+
+	render_inventory_turnover() {
+		const d = this.data.inventory_turnover;
+		if (!d || !d.items || !d.items.length) { this.$inv_turnover.html(this.empty_msg()); return; }
+
+		let html = `<div class="table-responsive"><table class="audit-table"><thead><tr>
+			<th>#</th><th>${this.t('th_item')}</th><th>${this.t('th_group')}</th>
+			<th>${this.t('th_quantity')}</th><th>${this.t('th_value')}</th>
+			<th>${this.t('th_qty_sold')}</th><th>${this.t('th_turnover')}</th>
+			<th>${this.t('th_days_on_hand')}</th><th>${this.t('th_status')}</th>
+		</tr></thead><tbody>`;
+		d.items.forEach((r, i) => {
+			const status = r.days_on_hand > 90 ? { label: this.t('lbl_slow_moving'), cls: 'risk-badge-high' }
+				: r.days_on_hand > 30 ? { label: this.t('lbl_normal'), cls: 'risk-badge-medium' }
+				: { label: this.t('lbl_fast'), cls: 'risk-badge-low' };
+			html += `<tr><td>${i+1}</td>
+				<td class="link-cell"><a href="/app/item/${encodeURIComponent(r.item_code)}" target="_blank">${r.item_name || r.item_code}</a></td>
+				<td>${r.item_group || ''}</td>
+				<td>${(r.current_qty || 0).toLocaleString()}</td>
+				<td class="currency-cell">${this.fc(r.current_value)}</td>
+				<td>${(r.qty_sold || 0).toLocaleString()}</td>
+				<td><strong>${r.turnover_ratio || 0}x</strong></td>
+				<td>${r.days_on_hand || 0}</td>
+				<td><span class="${status.cls}">${status.label}</span></td></tr>`;
+		});
+		html += '</tbody></table></div>';
+		this.$inv_turnover.html(html);
+	}
+
+	render_trial_balance() {
+		const d = this.data.trial_balance;
+		if (!d || !d.items || !d.items.length) { this.$trial_balance.html(this.empty_msg()); return; }
+
+		let html = `<div class="table-responsive"><table class="audit-table trial-balance-table"><thead><tr>
+			<th>${this.t('th_account')}</th><th>${this.t('th_root_type')}</th>
+			<th>${this.t('th_opening')} (${this.t('th_debit')})</th><th>${this.t('th_opening')} (${this.t('th_credit')})</th>
+			<th>${this.t('th_period_dr')}</th><th>${this.t('th_period_cr')}</th>
+			<th>${this.t('th_closing')} (${this.t('th_debit')})</th><th>${this.t('th_closing')} (${this.t('th_credit')})</th>
+		</tr></thead><tbody>`;
+
+		const root_types = { 'Asset': this.t('rt_asset'), 'Liability': this.t('rt_liability'), 'Equity': this.t('rt_equity'), 'Income': this.t('rt_income'), 'Expense': this.t('rt_expense') };
+		let current_root = '';
+		d.items.forEach(r => {
+			if (r.root_type !== current_root) {
+				current_root = r.root_type;
+				html += `<tr class="root-type-row"><td colspan="8"><strong>${root_types[r.root_type] || r.root_type}</strong></td></tr>`;
+			}
+			const acc_name = (r.account_name || r.account || '').split(' - ')[0];
+			html += `<tr>
+				<td class="link-cell" style="padding-left:24px"><a href="/app/account/${encodeURIComponent(r.account)}" target="_blank">${acc_name}</a></td>
+				<td></td>
+				<td class="currency-cell">${r.opening_debit ? this.fc(r.opening_debit) : ''}</td>
+				<td class="currency-cell">${r.opening_credit ? this.fc(r.opening_credit) : ''}</td>
+				<td class="currency-cell">${r.period_debit ? this.fc(r.period_debit) : ''}</td>
+				<td class="currency-cell">${r.period_credit ? this.fc(r.period_credit) : ''}</td>
+				<td class="currency-cell">${r.closing_debit ? this.fc(r.closing_debit) : ''}</td>
+				<td class="currency-cell">${r.closing_credit ? this.fc(r.closing_credit) : ''}</td>
+			</tr>`;
+		});
+
+		const t = d.totals;
+		html += `<tr class="total-row"><td><strong>${this.t('th_total')}</strong></td><td></td>
+			<td class="currency-cell"><strong>${this.fc(t.opening_debit)}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(t.opening_credit)}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(t.period_debit)}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(t.period_credit)}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(t.closing_debit)}</strong></td>
+			<td class="currency-cell"><strong>${this.fc(t.closing_credit)}</strong></td>
+		</tr>`;
+		html += '</tbody></table></div>';
+		this.$trial_balance.html(html);
+	}
+
+	render_ratio_trend_chart() {
+		const d = this.data.ratio_trend;
+		if (!d || !d.months || !d.months.length) {
+			this.$ratio_trend_chart.html(this.empty_msg());
+			return;
+		}
+
+		const months = d.months.map(m => m.month);
+		const me = this;
+
+		const options = {
+			tooltip: { trigger: 'axis',
+				formatter: function(params) {
+					let s = `<strong>${params[0].axisValue}</strong><br/>`;
+					params.forEach(p => {
+						const unit = p.seriesName.includes('Margin') || p.seriesName.includes('هامش') ? '%' : (p.seriesName.includes('Ratio') || p.seriesName.includes('نسبة') ? 'x' : '');
+						s += `${p.marker} ${p.seriesName}: ${p.value}${unit}<br/>`;
+					});
+					return s;
+				}
+			},
+			legend: { data: [this.t('th_dso'), this.t('th_dpo'), this.t('th_current_ratio'), this.t('th_net_margin'), this.t('th_gross_margin_col')], bottom: 0, textStyle: { fontFamily: 'Cairo', fontSize: 11 } },
+			grid: { left: '3%', right: '3%', bottom: '18%', top: '5%', containLabel: true },
+			xAxis: { type: 'category', data: months, axisLabel: { fontFamily: 'Cairo', fontSize: 11 } },
+			yAxis: [
+				{ type: 'value', name: this.lang === 'ar' ? 'أيام / نسبة' : 'Days / Ratio', axisLabel: { fontFamily: 'Cairo', fontSize: 11 } },
+				{ type: 'value', name: '%', axisLabel: { fontFamily: 'Cairo', fontSize: 11 } }
+			],
+			series: [
+				{ name: this.t('th_dso'), type: 'line', data: d.months.map(m => m.dso), smooth: true, itemStyle: { color: '#3b82f6' }, symbol: 'circle', symbolSize: 6 },
+				{ name: this.t('th_dpo'), type: 'line', data: d.months.map(m => m.dpo), smooth: true, itemStyle: { color: '#f97316' }, symbol: 'circle', symbolSize: 6 },
+				{ name: this.t('th_current_ratio'), type: 'line', data: d.months.map(m => m.current_ratio), smooth: true, itemStyle: { color: '#10b981' }, symbol: 'diamond', symbolSize: 8 },
+				{ name: this.t('th_net_margin'), type: 'line', yAxisIndex: 1, data: d.months.map(m => m.net_margin), smooth: true, itemStyle: { color: '#8b5cf6' }, lineStyle: { type: 'dashed' }, symbol: 'triangle', symbolSize: 6 },
+				{ name: this.t('th_gross_margin_col'), type: 'line', yAxisIndex: 1, data: d.months.map(m => m.gross_margin), smooth: true, itemStyle: { color: '#ec4899' }, lineStyle: { type: 'dashed' }, symbol: 'triangle', symbolSize: 6 },
+			]
+		};
+
+		setTimeout(() => this.init_echart(this.$ratio_trend_chart[0], options), 300);
+
+		const latest = d.months[d.months.length - 1];
+		this.$ratio_trend_stats.html(`
+			<div class="chart-stat"><span class="stat-label">${this.t('th_dso')}</span><span class="stat-value">${latest.dso} ${this.t('days')}</span></div>
+			<div class="chart-stat"><span class="stat-label">${this.t('th_dpo')}</span><span class="stat-value">${latest.dpo} ${this.t('days')}</span></div>
+			<div class="chart-stat"><span class="stat-label">${this.t('th_current_ratio')}</span><span class="stat-value">${latest.current_ratio}x</span></div>
+			<div class="chart-stat"><span class="stat-label">${this.t('th_net_margin')}</span><span class="stat-value">${latest.net_margin}%</span></div>
+		`);
 	}
 
 	// ─── Utilities ─────────────────────────────────────────
