@@ -875,12 +875,69 @@
    ═══════════════════════════════════════════════════ */
 
 @media print {
-	.financial-audit-page { background: white; padding: 0; }
-	.filters-section, .toggle-chevron, .ai-analysis-section { display: none !important; }
-	.data-section, .chart-section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
-	.section-body { max-height: unset !important; overflow: visible !important; display: block !important; }
+	/* Hide Frappe UI chrome */
+	.page-head, .navbar, .sidebar, .footer,
+	.page-container > .page-head,
+	.layout-side-section,
+	#page-financial-audit > .page-head { display: none !important; }
+
+	body, .main-section, .layout-main-section,
+	.container, .page-container { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+
+	.financial-audit-page {
+		background: white !important;
+		padding: 10px !important;
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+
+	.filters-section, .toggle-chevron { display: none !important; }
+
+	/* Show AI if it was visible */
+	.ai-analysis-section { break-inside: avoid; }
+
+	.data-section, .chart-section {
+		box-shadow: none !important;
+		border: 1px solid #ccc !important;
+		break-inside: avoid;
+		margin-bottom: 10px !important;
+	}
+
+	.section-body {
+		max-height: unset !important;
+		overflow: visible !important;
+		display: block !important;
+	}
+
+	.kpi-cards {
+		grid-template-columns: repeat(6, 1fr) !important;
+		gap: 8px !important;
+	}
+
+	.kpi-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+	.kpi-card:hover { transform: none !important; }
+
 	.audit-divider span { border: 1px solid #999; background: white; }
-	.audit-metrics-grid { grid-template-columns: repeat(4, 1fr); }
+	.audit-metrics-grid { grid-template-columns: repeat(4, 1fr) !important; }
+	.ai-summary-grid { grid-template-columns: repeat(4, 1fr) !important; }
+
+	.chart-container { min-height: 300px !important; }
+
+	/* Ensure tables are readable */
+	.audit-table th { background: #f5f5f5 !important; }
+	.audit-table td, .audit-table th { font-size: 11px !important; padding: 8px 12px !important; }
+
+	/* Hide hidden sections in PDF too */
+	[data-section-key][style*="display: none"],
+	[data-section-key][style*="display:none"] { display: none !important; }
+}
+
+/* PDF Export Mode — extra adjustments while generating PDF */
+.financial-audit-page.pdf-export-mode .filters-section { display: none !important; }
+.financial-audit-page.pdf-export-mode .section-body {
+	max-height: unset !important;
+	overflow: visible !important;
+	display: block !important;
 }
 
 /* ═══════════════════════════════════════════════════

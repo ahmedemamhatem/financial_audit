@@ -339,6 +339,19 @@ const FA_TRANSLATIONS = {
 	risk_ok_margin: { ar: 'هامش ربح مقبول', en: 'Acceptable Margin' },
 	risk_ok_margin_desc: { ar: 'هامش الربح مقبول لكن يمكن تحسينه', en: 'Margin is acceptable but can be improved' },
 
+	// ── PDF Export ──
+	pdf_export_btn: { ar: 'تصدير PDF', en: 'Export PDF' },
+	pdf_title: { ar: 'تقرير التدقيق المالي', en: 'Financial Audit Report' },
+	pdf_preparing: { ar: 'جاري تجهيز التقرير للطباعة...', en: 'Preparing report for print...' },
+
+	// ── Custom Layout ──
+	layout_btn: { ar: 'تخصيص العرض', en: 'Customize Layout' },
+	layout_dialog_title: { ar: 'تخصيص أقسام التقرير', en: 'Customize Report Sections' },
+	layout_show_all: { ar: 'عرض الكل', en: 'Show All' },
+	layout_hide_all: { ar: 'إخفاء الكل', en: 'Hide All' },
+	layout_reset: { ar: 'إعادة تعيين', en: 'Reset' },
+	layout_save: { ar: 'حفظ', en: 'Save' },
+
 	// ── Months ──
 	month_1: { ar: 'يناير', en: 'January' },
 	month_2: { ar: 'فبراير', en: 'February' },
@@ -365,6 +378,38 @@ class FinancialAuditDashboard {
 		this.is_rtl = this.lang === 'ar';
 		this.months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 		this.months_en = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+		// Section registry for custom layout
+		this.section_registry = [
+			{ key: 'balance-sheet', label_key: 'sec_balance_sheet' },
+			{ key: 'monthly-chart', label_key: 'sec_monthly_trends' },
+			{ key: 'daily-sales-chart', label_key: 'sec_daily_sales' },
+			{ key: 'expense-pie', label_key: 'sec_expense_dist' },
+			{ key: 'cash-flow-chart', label_key: 'sec_cash_flow' },
+			{ key: 'pnl', label_key: 'sec_income_stmt' },
+			{ key: 'gl-voucher', label_key: 'sec_gl_voucher' },
+			{ key: 'stock-voucher', label_key: 'sec_stock_voucher' },
+			{ key: 'top-customers', label_key: 'sec_top_customers' },
+			{ key: 'top-products', label_key: 'sec_top_products' },
+			{ key: 'top-suppliers', label_key: 'sec_top_suppliers' },
+			{ key: 'sales-returns', label_key: 'sec_sales_returns' },
+			{ key: 'purchase-returns', label_key: 'sec_purchase_returns' },
+			{ key: 'ar-aging', label_key: 'sec_ar_aging' },
+			{ key: 'ap-aging', label_key: 'sec_ap_aging' },
+			{ key: 'bank-balances', label_key: 'sec_bank_balances' },
+			{ key: 'payment-modes', label_key: 'sec_payment_modes' },
+			{ key: 'journal-entries', label_key: 'sec_journal_entries' },
+			{ key: 'inventory', label_key: 'sec_inventory' },
+			{ key: 'stock-movement', label_key: 'sec_stock_movement' },
+			{ key: 'stock-ageing', label_key: 'sec_stock_ageing' },
+			{ key: 'working-capital', label_key: 'sec_working_capital' },
+			{ key: 'yoy-growth', label_key: 'sec_yoy_growth' },
+			{ key: 'benford-chart', label_key: 'sec_benford' },
+			{ key: 'duplicate-payments', label_key: 'sec_duplicate_payments' },
+			{ key: 'concentration', label_key: 'sec_concentration' },
+			{ key: 'weekend-txn', label_key: 'sec_weekend_txn' },
+		];
+		this.load_layout_prefs();
 
 		this.setup_page();
 		this.load_puter_js();
@@ -411,8 +456,10 @@ class FinancialAuditDashboard {
 	}
 
 	make_section(cls, icon, icon_bg, icon_color, title, body_cls, desc) {
+		const section_key = body_cls.replace('-body', '');
+		const hidden = this.hidden_sections.has(section_key) ? ' style="display:none"' : '';
 		return `
-			<div class="${cls}">
+			<div class="${cls}" data-section-key="${section_key}"${hidden}>
 				<div class="section-header" data-target="${body_cls}">
 					<span class="section-title">
 						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
@@ -426,8 +473,10 @@ class FinancialAuditDashboard {
 	}
 
 	make_chart_section(icon, icon_bg, icon_color, title, chart_cls, stats_cls, desc) {
+		const section_key = chart_cls;
+		const hidden = this.hidden_sections.has(section_key) ? ' style="display:none"' : '';
 		return `
-			<div class="chart-section">
+			<div class="chart-section" data-section-key="${section_key}"${hidden}>
 				<div class="section-header" data-target="${chart_cls}">
 					<span class="section-title">
 						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
@@ -450,6 +499,8 @@ class FinancialAuditDashboard {
 		this.page.set_primary_action(this.t('refresh'), () => this.load_data(), 'refresh');
 		this.page.add_inner_button(this.t('ai_analysis_btn'), () => this.run_ai_analysis());
 		this.page.add_inner_button(this.lang === 'ar' ? 'مسح التحليل' : 'Clear AI', () => this.clear_ai_analysis());
+		this.page.add_inner_button(this.t('pdf_export_btn'), () => this.export_pdf());
+		this.page.add_inner_button(this.t('layout_btn'), () => this.show_layout_dialog());
 
 		this.page.main.html(`
 			<div class="financial-audit-page ${this.is_rtl ? '' : 'ltr-mode'}" dir="${dir}">
@@ -2222,6 +2273,153 @@ ${lang_instruction}`;
 				</div>
 			</div>
 		`);
+	}
+
+	// ─── PDF Export ─────────────────────────────────────────
+	export_pdf() {
+		if (!this.data || !this.data.kpis) {
+			frappe.msgprint(this.t('load_data_first'));
+			return;
+		}
+
+		// Expand all collapsed sections before printing
+		const $page = this.page.main.find('.financial-audit-page');
+		const $collapsed_bodies = $page.find('.section-body:hidden');
+		const $collapsed_chevrons = $page.find('.toggle-chevron.collapsed');
+		$collapsed_bodies.show();
+		$collapsed_chevrons.removeClass('collapsed');
+
+		// Add print class for enhanced print styling
+		$page.addClass('pdf-export-mode');
+
+		// Set document title for PDF filename
+		const orig_title = document.title;
+		document.title = `${this.t('pdf_title')} - ${this.data.company} - ${this.data.from_date} ${this.t('ai_to')} ${this.data.to_date}`;
+
+		// Trigger print
+		setTimeout(() => {
+			window.print();
+
+			// Restore state after print dialog
+			setTimeout(() => {
+				$page.removeClass('pdf-export-mode');
+				document.title = orig_title;
+				// Re-collapse sections that were collapsed
+				$collapsed_bodies.hide();
+				$collapsed_chevrons.addClass('collapsed');
+			}, 500);
+		}, 300);
+	}
+
+	// ─── Custom Layout ──────────────────────────────────────
+	load_layout_prefs() {
+		this.hidden_sections = new Set();
+		try {
+			const saved = localStorage.getItem('fa_hidden_sections');
+			if (saved) {
+				const arr = JSON.parse(saved);
+				if (Array.isArray(arr)) {
+					arr.forEach(k => this.hidden_sections.add(k));
+				}
+			}
+		} catch(e) { /* ignore */ }
+	}
+
+	save_layout_prefs() {
+		localStorage.setItem('fa_hidden_sections', JSON.stringify([...this.hidden_sections]));
+	}
+
+	apply_layout() {
+		const $page = this.page.main.find('.financial-audit-page');
+		this.section_registry.forEach(sec => {
+			const $el = $page.find(`[data-section-key="${sec.key}"]`);
+			if ($el.length) {
+				if (this.hidden_sections.has(sec.key)) {
+					$el.hide();
+				} else {
+					$el.show();
+				}
+			}
+		});
+		// Handle the advanced divider — hide if all advanced sections are hidden
+		const advanced_keys = ['working-capital', 'yoy-growth', 'benford-chart', 'duplicate-payments', 'concentration', 'weekend-txn'];
+		const all_advanced_hidden = advanced_keys.every(k => this.hidden_sections.has(k));
+		const $divider = $page.find('.audit-divider');
+		if (all_advanced_hidden) {
+			$divider.hide();
+		} else {
+			$divider.show();
+		}
+	}
+
+	show_layout_dialog() {
+		const me = this;
+		const fields = [];
+
+		fields.push({
+			fieldtype: 'HTML',
+			fieldname: 'layout_actions',
+			options: `<div style="display:flex;gap:10px;margin-bottom:12px;">
+				<button class="btn btn-xs btn-default layout-show-all">${this.t('layout_show_all')}</button>
+				<button class="btn btn-xs btn-default layout-hide-all">${this.t('layout_hide_all')}</button>
+				<button class="btn btn-xs btn-default layout-reset">${this.t('layout_reset')}</button>
+			</div>`
+		});
+
+		this.section_registry.forEach(sec => {
+			fields.push({
+				fieldtype: 'Check',
+				fieldname: `sec_${sec.key.replace(/-/g, '_')}`,
+				label: this.t(sec.label_key),
+				default: this.hidden_sections.has(sec.key) ? 0 : 1
+			});
+		});
+
+		const dlg = new frappe.ui.Dialog({
+			title: this.t('layout_dialog_title'),
+			fields: fields,
+			primary_action_label: this.t('layout_save'),
+			primary_action: (values) => {
+				me.hidden_sections.clear();
+				me.section_registry.forEach(sec => {
+					const fname = `sec_${sec.key.replace(/-/g, '_')}`;
+					if (!values[fname]) {
+						me.hidden_sections.add(sec.key);
+					}
+				});
+				me.save_layout_prefs();
+				me.apply_layout();
+				dlg.hide();
+				frappe.show_alert({
+					message: me.lang === 'ar' ? 'تم حفظ التخطيط' : 'Layout saved',
+					indicator: 'green'
+				}, 3);
+			}
+		});
+
+		dlg.show();
+
+		// Bulk actions
+		dlg.$wrapper.find('.layout-show-all').on('click', function() {
+			me.section_registry.forEach(sec => {
+				const fname = `sec_${sec.key.replace(/-/g, '_')}`;
+				dlg.set_value(fname, 1);
+			});
+		});
+
+		dlg.$wrapper.find('.layout-hide-all').on('click', function() {
+			me.section_registry.forEach(sec => {
+				const fname = `sec_${sec.key.replace(/-/g, '_')}`;
+				dlg.set_value(fname, 0);
+			});
+		});
+
+		dlg.$wrapper.find('.layout-reset').on('click', function() {
+			me.section_registry.forEach(sec => {
+				const fname = `sec_${sec.key.replace(/-/g, '_')}`;
+				dlg.set_value(fname, 1);
+			});
+		});
 	}
 
 	// ─── Utilities ─────────────────────────────────────────
