@@ -5,7 +5,13 @@ frappe.pages['financial-audit'].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-	new FinancialAuditDashboard(page);
+	wrapper.financial_audit = new FinancialAuditDashboard(page);
+}
+
+frappe.pages['financial-audit'].on_page_show = function(wrapper) {
+	if (wrapper.financial_audit) {
+		wrapper.financial_audit.load_data();
+	}
 }
 
 class FinancialAuditDashboard {
@@ -92,11 +98,11 @@ class FinancialAuditDashboard {
 
 				<!-- AI Analysis — right after filters, before everything -->
 				<div class="ai-analysis-section" style="display: none;">
-					<div class="section-header ai-header">
+					<div class="section-header ai-header" data-target="ai-analysis-body">
 						<span class="section-title"><i class="fa fa-magic" style="margin-left:8px"></i> التحليل الذكي (AI)</span>
-						<button class="btn btn-xs btn-default close-ai-btn">✕</button>
+						<span class="toggle-chevron">&#9660;</span>
 					</div>
-					<div class="ai-analysis-body"></div>
+					<div class="section-body ai-analysis-body"></div>
 				</div>
 
 				<div class="kpi-cards"></div>
@@ -207,6 +213,7 @@ class FinancialAuditDashboard {
 		this.$inventory = this.page.main.find('.inventory-body');
 		this.$ai = this.page.main.find('.ai-analysis-section');
 		this.$ai_body = this.page.main.find('.ai-analysis-body');
+		this.$ai_desc = this.page.main.find('.ai-analysis-section .section-desc');
 		this.$balance_sheet = this.page.main.find('.balance-sheet-body');
 		this.$gl_voucher = this.page.main.find('.gl-voucher-body');
 		this.$stock_voucher = this.page.main.find('.stock-voucher-body');
@@ -218,20 +225,16 @@ class FinancialAuditDashboard {
 		this.$payment_modes = this.page.main.find('.payment-modes-body');
 		this.$stock_ageing = this.page.main.find('.stock-ageing-body');
 
-		// Toggle all sections via header click
+		// Toggle all sections via header click (including AI)
 		this.page.main.on('click', '.section-header', function(e) {
-			if ($(e.target).hasClass('close-ai-btn')) return;
 			const target = $(this).data('target');
 			if (!target) return;
-			const $parent = $(this).closest('.data-section, .chart-section');
+			const $parent = $(this).closest('.data-section, .chart-section, .ai-analysis-section');
 			const $body = $parent.find('.section-body');
 			const $chevron = $(this).find('.toggle-chevron');
 			$body.slideToggle(200);
 			$chevron.toggleClass('collapsed');
 		});
-
-		// Close AI
-		this.page.main.on('click', '.close-ai-btn', () => this.$ai.slideUp());
 
 		// Resize echarts on window resize
 		$(window).on('resize', () => {
