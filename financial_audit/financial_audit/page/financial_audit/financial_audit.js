@@ -40,11 +40,22 @@ class FinancialAuditDashboard {
 				<div class="filters-section"></div>
 				<div class="kpi-cards"></div>
 
+				<!-- Balance Sheet Summary -->
+				<div class="data-section">
+					<div class="section-header">
+						<span class="section-title">ملخص الميزانية العمومية</span>
+						<span class="toggle-btn" data-target="balance-sheet-body">▼</span>
+					</div>
+					<div class="section-body balance-sheet-body"></div>
+				</div>
+
+				<!-- Monthly Trends Chart -->
 				<div class="chart-section">
 					<div class="section-header"><span class="section-title">اتجاهات الإيرادات والمصروفات الشهرية</span></div>
 					<div class="chart-container monthly-chart-container"></div>
 				</div>
 
+				<!-- Daily Sales + Expense Pie -->
 				<div class="charts-row two-col">
 					<div class="chart-section">
 						<div class="section-header"><span class="section-title">المبيعات اليومية</span></div>
@@ -56,11 +67,13 @@ class FinancialAuditDashboard {
 					</div>
 				</div>
 
+				<!-- Cash Flow Chart -->
 				<div class="chart-section">
 					<div class="section-header"><span class="section-title">التدفق النقدي الشهري</span></div>
 					<div class="chart-container cash-flow-chart-container"></div>
 				</div>
 
+				<!-- P&L -->
 				<div class="data-section pnl-section">
 					<div class="section-header">
 						<span class="section-title">قائمة الدخل</span>
@@ -69,6 +82,25 @@ class FinancialAuditDashboard {
 					<div class="section-body pnl-body"></div>
 				</div>
 
+				<!-- GL Voucher Summary + Stock Voucher Summary -->
+				<div class="tables-row two-col">
+					<div class="data-section">
+						<div class="section-header">
+							<span class="section-title">ملخص قيود اليومية حسب النوع</span>
+							<span class="toggle-btn" data-target="gl-voucher-body">▼</span>
+						</div>
+						<div class="section-body gl-voucher-body"></div>
+					</div>
+					<div class="data-section">
+						<div class="section-header">
+							<span class="section-title">ملخص حركات المخزون حسب النوع</span>
+							<span class="toggle-btn" data-target="stock-voucher-body">▼</span>
+						</div>
+						<div class="section-body stock-voucher-body"></div>
+					</div>
+				</div>
+
+				<!-- Top Customers + Top Products -->
 				<div class="tables-row two-col">
 					<div class="data-section">
 						<div class="section-header"><span class="section-title">أعلى العملاء حسب الإيرادات</span></div>
@@ -80,11 +112,25 @@ class FinancialAuditDashboard {
 					</div>
 				</div>
 
+				<!-- Top Suppliers -->
 				<div class="data-section">
 					<div class="section-header"><span class="section-title">أعلى الموردين</span></div>
 					<div class="section-body top-suppliers-body"></div>
 				</div>
 
+				<!-- Sales Returns + Purchase Returns -->
+				<div class="tables-row two-col">
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">مرتجعات المبيعات (إشعارات دائنة)</span></div>
+						<div class="section-body sales-returns-body"></div>
+					</div>
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">مرتجعات المشتريات (إشعارات مدينة)</span></div>
+						<div class="section-body purchase-returns-body"></div>
+					</div>
+				</div>
+
+				<!-- AR Aging + AP Aging -->
 				<div class="tables-row two-col">
 					<div class="data-section">
 						<div class="section-header"><span class="section-title">تقادم الذمم المدينة (العملاء)</span></div>
@@ -96,11 +142,58 @@ class FinancialAuditDashboard {
 					</div>
 				</div>
 
+				<!-- Bank Balances -->
 				<div class="data-section">
-					<div class="section-header"><span class="section-title">تقييم المخزون حسب المخزن</span></div>
-					<div class="section-body inventory-body"></div>
+					<div class="section-header">
+						<span class="section-title">أرصدة البنوك والصناديق</span>
+						<span class="toggle-btn" data-target="bank-balances-body">▼</span>
+					</div>
+					<div class="section-body bank-balances-body"></div>
 				</div>
 
+				<!-- Payment Modes + Journal Entries -->
+				<div class="tables-row two-col">
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">أنماط الدفع</span></div>
+						<div class="section-body payment-modes-body"></div>
+					</div>
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">ملخص قيود اليومية</span></div>
+						<div class="section-body journal-entries-body"></div>
+					</div>
+				</div>
+
+				<!-- Inventory + Stock Movement -->
+				<div class="tables-row two-col">
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">تقييم المخزون حسب المخزن</span></div>
+						<div class="section-body inventory-body"></div>
+					</div>
+					<div class="data-section">
+						<div class="section-header"><span class="section-title">أعلى حركات المخزون</span></div>
+						<div class="section-body stock-movement-body"></div>
+					</div>
+				</div>
+
+				<!-- Stock Ageing -->
+				<div class="data-section">
+					<div class="section-header">
+						<span class="section-title">تقادم المخزون (مخزون راكد)</span>
+						<span class="toggle-btn" data-target="stock-ageing-body">▼</span>
+					</div>
+					<div class="section-body stock-ageing-body"></div>
+				</div>
+
+				<!-- Custom Doctypes Analysis -->
+				<div class="data-section custom-doctypes-section">
+					<div class="section-header">
+						<span class="section-title">تحليل المستندات والتطبيقات المثبتة</span>
+						<span class="toggle-btn" data-target="custom-doctypes-body">▼</span>
+					</div>
+					<div class="section-body custom-doctypes-body"></div>
+				</div>
+
+				<!-- AI Analysis -->
 				<div class="ai-analysis-section" style="display: none;">
 					<div class="section-header ai-header">
 						<span class="section-title">التحليل الذكي (AI)</span>
@@ -127,6 +220,18 @@ class FinancialAuditDashboard {
 		this.$inventory = this.page.main.find('.inventory-body');
 		this.$ai = this.page.main.find('.ai-analysis-section');
 		this.$ai_body = this.page.main.find('.ai-analysis-body');
+		// New section references
+		this.$balance_sheet = this.page.main.find('.balance-sheet-body');
+		this.$gl_voucher = this.page.main.find('.gl-voucher-body');
+		this.$stock_voucher = this.page.main.find('.stock-voucher-body');
+		this.$stock_movement = this.page.main.find('.stock-movement-body');
+		this.$bank_balances = this.page.main.find('.bank-balances-body');
+		this.$sales_returns = this.page.main.find('.sales-returns-body');
+		this.$purchase_returns = this.page.main.find('.purchase-returns-body');
+		this.$journal_entries = this.page.main.find('.journal-entries-body');
+		this.$payment_modes = this.page.main.find('.payment-modes-body');
+		this.$stock_ageing = this.page.main.find('.stock-ageing-body');
+		this.$custom_doctypes = this.page.main.find('.custom-doctypes-body');
 
 		// Toggle sections
 		this.page.main.on('click', '.toggle-btn', function() {
@@ -208,17 +313,28 @@ class FinancialAuditDashboard {
 
 	render_all() {
 		this.render_kpi_cards();
+		this.render_balance_sheet();
 		this.render_pnl_table();
 		this.render_monthly_chart();
 		this.render_daily_sales_chart();
 		this.render_expense_pie();
 		this.render_cash_flow_chart();
+		this.render_gl_voucher_summary();
+		this.render_stock_voucher_summary();
 		this.render_top_customers();
 		this.render_top_products();
 		this.render_top_suppliers();
+		this.render_sales_returns();
+		this.render_purchase_returns();
 		this.render_ar_aging();
 		this.render_ap_aging();
+		this.render_bank_balances();
+		this.render_payment_modes();
+		this.render_journal_entries();
 		this.render_inventory_table();
+		this.render_stock_movement();
+		this.render_stock_ageing();
+		this.render_custom_doctypes();
 	}
 
 	// ─── KPI Cards ─────────────────────────────────────────
@@ -235,6 +351,8 @@ class FinancialAuditDashboard {
 			{ title: 'الذمم الدائنة', value: this.fc(k.ap_outstanding), css: 'payable', icon: 'fa-truck' },
 			{ title: 'الرصيد النقدي', value: this.fc(k.cash_balance), css: k.cash_balance >= 0 ? 'cash' : 'loss', icon: 'fa-university' },
 			{ title: 'قيمة المخزون', value: this.fc(k.inventory_value), css: 'inventory', icon: 'fa-cubes' },
+			{ title: 'فواتير المبيعات', value: k.si_count, css: 'revenue', icon: 'fa-file-text-o' },
+			{ title: 'فواتير المشتريات', value: k.pi_count, css: 'cogs', icon: 'fa-file-text' },
 		];
 
 		this.$kpi.html(cards.map(c => `
@@ -244,6 +362,36 @@ class FinancialAuditDashboard {
 				<div class="kpi-value">${c.value}</div>
 			</div>
 		`).join(''));
+	}
+
+	// ─── Balance Sheet Summary ────────────────────────────
+	render_balance_sheet() {
+		const data = this.data.balance_sheet || [];
+		if (!data.length) { this.$balance_sheet.html(this.empty_msg()); return; }
+
+		const root_type_labels = {
+			'Asset': 'الأصول',
+			'Liability': 'الالتزامات',
+			'Equity': 'حقوق الملكية',
+			'Income': 'الإيرادات',
+			'Expense': 'المصروفات'
+		};
+
+		const rows = data.map(r => {
+			const label = root_type_labels[r.root_type] || r.root_type;
+			const is_debit = ['Asset', 'Expense'].includes(r.root_type);
+			const balance = is_debit ? r.net_balance : -r.net_balance;
+			return `<tr>
+				<td><strong>${label}</strong></td>
+				<td class="currency">${this.fc(r.total_debit)}</td>
+				<td class="currency">${this.fc(r.total_credit)}</td>
+				<td class="currency ${balance >= 0 ? 'positive' : 'negative'}">${this.fc(balance)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$balance_sheet.html(`<table class="audit-table"><thead><tr>
+			<th>النوع</th><th>إجمالي المدين</th><th>إجمالي الدائن</th><th>الرصيد</th>
+		</tr></thead><tbody>${rows}</tbody></table>`);
 	}
 
 	// ─── P&L Table ─────────────────────────────────────────
@@ -346,6 +494,52 @@ class FinancialAuditDashboard {
 		});
 	}
 
+	// ─── GL Voucher Summary ───────────────────────────────
+	render_gl_voucher_summary() {
+		const data = this.data.gl_voucher_summary || [];
+		if (!data.length) { this.$gl_voucher.html(this.empty_msg()); return; }
+
+		let total_debit = 0, total_credit = 0;
+		const rows = data.map((v, i) => {
+			total_debit += v.total_debit;
+			total_credit += v.total_credit;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td><a href="/app/${frappe.router.slug(v.voucher_type)}">${v.voucher_type}</a></td>
+				<td>${v.doc_count}</td>
+				<td>${v.entry_count}</td>
+				<td class="currency">${this.fc(v.total_debit)}</td>
+				<td class="currency">${this.fc(v.total_credit)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$gl_voucher.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>نوع المستند</th><th>المستندات</th><th>القيود</th><th>مدين</th><th>دائن</th>
+		</tr></thead><tbody>${rows}
+		<tr class="pnl-row total"><td colspan="4">الإجمالي</td><td class="currency">${this.fc(total_debit)}</td><td class="currency">${this.fc(total_credit)}</td></tr>
+		</tbody></table>`);
+	}
+
+	// ─── Stock Voucher Summary ────────────────────────────
+	render_stock_voucher_summary() {
+		const data = this.data.stock_voucher_summary || [];
+		if (!data.length) { this.$stock_voucher.html(this.empty_msg()); return; }
+
+		const rows = data.map((v, i) => `<tr>
+			<td>${i + 1}</td>
+			<td><a href="/app/${frappe.router.slug(v.voucher_type)}">${v.voucher_type}</a></td>
+			<td>${v.doc_count}</td>
+			<td>${v.entry_count}</td>
+			<td class="currency positive">${format_number(v.qty_in, null, 2)}</td>
+			<td class="currency negative">${format_number(v.qty_out, null, 2)}</td>
+			<td class="currency ${v.value_change >= 0 ? 'positive' : 'negative'}">${this.fc(v.value_change)}</td>
+		</tr>`).join('');
+
+		this.$stock_voucher.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>نوع المستند</th><th>المستندات</th><th>الحركات</th><th>كمية واردة</th><th>كمية صادرة</th><th>تغير القيمة</th>
+		</tr></thead><tbody>${rows}</tbody></table>`);
+	}
+
 	// ─── Tables ────────────────────────────────────────────
 	render_top_customers() {
 		const data = this.data.top_customers || [];
@@ -403,6 +597,52 @@ class FinancialAuditDashboard {
 		</tr></thead><tbody>${rows}</tbody></table>`);
 	}
 
+	// ─── Sales & Purchase Returns ─────────────────────────
+	render_sales_returns() {
+		const data = this.data.sales_returns || [];
+		if (!data.length) { this.$sales_returns.html(this.empty_msg()); return; }
+
+		let total = 0;
+		const rows = data.map((r, i) => {
+			total += r.return_amount;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td>${r.customer_name}</td>
+				<td>${r.return_count}</td>
+				<td class="currency negative">${this.fc(r.return_amount)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$sales_returns.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>العميل</th><th>عدد المرتجعات</th><th>المبلغ</th>
+		</tr></thead><tbody>${rows}
+		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency negative">${this.fc(total)}</td></tr>
+		</tbody></table>`);
+	}
+
+	render_purchase_returns() {
+		const data = this.data.purchase_returns || [];
+		if (!data.length) { this.$purchase_returns.html(this.empty_msg()); return; }
+
+		let total = 0;
+		const rows = data.map((r, i) => {
+			total += r.return_amount;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td>${r.supplier_name}</td>
+				<td>${r.return_count}</td>
+				<td class="currency negative">${this.fc(r.return_amount)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$purchase_returns.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>المورد</th><th>عدد المرتجعات</th><th>المبلغ</th>
+		</tr></thead><tbody>${rows}
+		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency negative">${this.fc(total)}</td></tr>
+		</tbody></table>`);
+	}
+
+	// ─── AR/AP Aging ──────────────────────────────────────
 	render_ar_aging() {
 		const data = this.data.ar_aging || [];
 		if (!data.length) { this.$ar_aging.html(this.empty_msg()); return; }
@@ -437,6 +677,75 @@ class FinancialAuditDashboard {
 		</tr></thead><tbody>${rows}</tbody></table>`);
 	}
 
+	// ─── Bank Balances ────────────────────────────────────
+	render_bank_balances() {
+		const data = this.data.bank_balances || [];
+		if (!data.length) { this.$bank_balances.html(this.empty_msg()); return; }
+
+		let total = 0;
+		const rows = data.map((b, i) => {
+			total += b.balance;
+			const type_label = b.account_type === 'Bank' ? 'بنك' : 'صندوق';
+			const type_css = b.account_type === 'Bank' ? 'bank-type' : 'cash-type';
+			return `<tr>
+				<td>${i + 1}</td>
+				<td>${b.account_name}</td>
+				<td><span class="account-type-badge ${type_css}">${type_label}</span></td>
+				<td class="currency ${b.balance >= 0 ? 'positive' : 'negative'}">${this.fc(b.balance)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$bank_balances.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>الحساب</th><th>النوع</th><th>الرصيد</th>
+		</tr></thead><tbody>${rows}
+		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency ${total >= 0 ? 'positive' : 'negative'}">${this.fc(total)}</td></tr>
+		</tbody></table>`);
+	}
+
+	// ─── Payment Modes ────────────────────────────────────
+	render_payment_modes() {
+		const data = this.data.payment_modes || [];
+		if (!data.length) { this.$payment_modes.html(this.empty_msg()); return; }
+
+		const type_labels = { 'Receive': 'تحصيل', 'Pay': 'دفع', 'Internal Transfer': 'تحويل داخلي' };
+
+		const rows = data.map((p, i) => `<tr>
+			<td>${i + 1}</td>
+			<td>${p.mode}</td>
+			<td><span class="payment-type-badge ${p.payment_type === 'Receive' ? 'receive' : 'pay'}">${type_labels[p.payment_type] || p.payment_type}</span></td>
+			<td>${p.entry_count}</td>
+			<td class="currency">${this.fc(p.total_amount)}</td>
+		</tr>`).join('');
+
+		this.$payment_modes.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>طريقة الدفع</th><th>النوع</th><th>العدد</th><th>المبلغ</th>
+		</tr></thead><tbody>${rows}</tbody></table>`);
+	}
+
+	// ─── Journal Entries Summary ──────────────────────────
+	render_journal_entries() {
+		const data = this.data.journal_entries_summary || [];
+		if (!data.length) { this.$journal_entries.html(this.empty_msg()); return; }
+
+		let total = 0;
+		const rows = data.map((j, i) => {
+			total += j.total_amount;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td>${j.entry_type}</td>
+				<td>${j.entry_count}</td>
+				<td class="currency">${this.fc(j.total_amount)}</td>
+			</tr>`;
+		}).join('');
+
+		this.$journal_entries.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>نوع القيد</th><th>العدد</th><th>المبلغ</th>
+		</tr></thead><tbody>${rows}
+		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency">${this.fc(total)}</td></tr>
+		</tbody></table>`);
+	}
+
+	// ─── Inventory ────────────────────────────────────────
 	render_inventory_table() {
 		const data = this.data.inventory_by_warehouse || [];
 		if (!data.length) { this.$inventory.html(this.empty_msg()); return; }
@@ -458,6 +767,128 @@ class FinancialAuditDashboard {
 		</tr></thead><tbody>${rows}
 		<tr class="pnl-row total"><td colspan="4">الإجمالي</td><td class="currency">${this.fc(total_value)}</td></tr>
 		</tbody></table>`);
+	}
+
+	// ─── Stock Movement ───────────────────────────────────
+	render_stock_movement() {
+		const data = this.data.stock_movement || [];
+		if (!data.length) { this.$stock_movement.html(this.empty_msg()); return; }
+
+		const rows = data.map((s, i) => `<tr>
+			<td>${i + 1}</td>
+			<td><a href="/app/item/${s.item_code}">${s.item_name || s.item_code}</a></td>
+			<td>${s.item_group || '-'}</td>
+			<td class="currency positive">${format_number(s.qty_in, null, 2)}</td>
+			<td class="currency negative">${format_number(s.qty_out, null, 2)}</td>
+			<td class="currency ${s.value_change >= 0 ? 'positive' : 'negative'}">${this.fc(s.value_change)}</td>
+			<td>${s.txn_count}</td>
+		</tr>`).join('');
+
+		this.$stock_movement.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>الصنف</th><th>المجموعة</th><th>وارد</th><th>صادر</th><th>تغير القيمة</th><th>الحركات</th>
+		</tr></thead><tbody>${rows}</tbody></table>`);
+	}
+
+	// ─── Stock Ageing ─────────────────────────────────────
+	render_stock_ageing() {
+		const data = this.data.stock_ageing || [];
+		if (!data.length) { this.$stock_ageing.html(this.empty_msg()); return; }
+
+		const rows = data.map((s, i) => `<tr>
+			<td>${i + 1}</td>
+			<td><a href="/app/item/${s.item_code}">${s.item_name || s.item_code}</a></td>
+			<td>${s.warehouse}</td>
+			<td>${format_number(s.current_qty, null, 2)}</td>
+			<td class="currency">${this.fc(s.current_value)}</td>
+			<td>${this.aging_badge(s.age_days)}</td>
+		</tr>`).join('');
+
+		this.$stock_ageing.html(`<table class="audit-table"><thead><tr>
+			<th>#</th><th>الصنف</th><th>المخزن</th><th>الكمية</th><th>القيمة</th><th>العمر</th>
+		</tr></thead><tbody>${rows}</tbody></table>`);
+	}
+
+	// ─── Custom Doctypes Analysis ─────────────────────────
+	render_custom_doctypes() {
+		const data = this.data.custom_doctypes_analysis;
+		if (!data) { this.$custom_doctypes.html(this.empty_msg()); return; }
+
+		let html = '';
+
+		// Submittable Doctypes
+		const doctypes = data.submittable_doctypes || [];
+		if (doctypes.length) {
+			const dt_rows = doctypes.map((d, i) => `<tr>
+				<td>${i + 1}</td>
+				<td><a href="/app/${frappe.router.slug(d.doctype)}">${d.doctype}</a></td>
+				<td>${d.module}</td>
+				<td>${d.is_custom ? '<span class="custom-badge">مخصص</span>' : '<span class="core-badge">أساسي</span>'}</td>
+				<td><strong>${d.doc_count}</strong></td>
+				<td>${d.amount_fields.length ? d.amount_fields.join(', ') : '-'}</td>
+			</tr>`).join('');
+
+			html += `<div class="sub-section">
+				<h4 class="sub-section-title">المستندات القابلة للاعتماد (${doctypes.length})</h4>
+				<table class="audit-table"><thead><tr>
+					<th>#</th><th>المستند</th><th>الوحدة</th><th>النوع</th><th>العدد</th><th>حقول المبالغ</th>
+				</tr></thead><tbody>${dt_rows}</tbody></table>
+			</div>`;
+		}
+
+		// Custom Fields on GL Entry
+		const gl_fields = data.custom_fields_on_gl || [];
+		if (gl_fields.length) {
+			const gl_rows = gl_fields.map((f, i) => `<tr>
+				<td>${i + 1}</td>
+				<td>${f.label || f.fieldname}</td>
+				<td><code>${f.fieldname}</code></td>
+				<td>${f.fieldtype}</td>
+				<td>${f.options || '-'}</td>
+			</tr>`).join('');
+
+			html += `<div class="sub-section">
+				<h4 class="sub-section-title">حقول مخصصة على قيود اليومية (${gl_fields.length})</h4>
+				<table class="audit-table"><thead><tr>
+					<th>#</th><th>التسمية</th><th>اسم الحقل</th><th>النوع</th><th>الخيارات</th>
+				</tr></thead><tbody>${gl_rows}</tbody></table>
+			</div>`;
+		}
+
+		// Accounting Dimensions
+		const dims = data.accounting_dimensions || [];
+		if (dims.length) {
+			const dim_rows = dims.map((d, i) => `<tr>
+				<td>${i + 1}</td>
+				<td>${d.label || d.name}</td>
+				<td>${d.document_type}</td>
+			</tr>`).join('');
+
+			html += `<div class="sub-section">
+				<h4 class="sub-section-title">الأبعاد المحاسبية (${dims.length})</h4>
+				<table class="audit-table"><thead><tr>
+					<th>#</th><th>البعد</th><th>نوع المستند</th>
+				</tr></thead><tbody>${dim_rows}</tbody></table>
+			</div>`;
+		}
+
+		// Installed Apps
+		const apps = this.data.installed_apps || [];
+		if (apps.length) {
+			const app_rows = apps.map((a, i) => `<tr>
+				<td>${i + 1}</td>
+				<td><strong>${a.app}</strong></td>
+				<td>${a.version || '-'}</td>
+			</tr>`).join('');
+
+			html += `<div class="sub-section">
+				<h4 class="sub-section-title">التطبيقات المثبتة (${apps.length})</h4>
+				<table class="audit-table"><thead><tr>
+					<th>#</th><th>التطبيق</th><th>الإصدار</th>
+				</tr></thead><tbody>${app_rows}</tbody></table>
+			</div>`;
+		}
+
+		this.$custom_doctypes.html(html || this.empty_msg());
 	}
 
 	// ─── AI Analysis ───────────────────────────────────────
@@ -515,6 +946,43 @@ class FinancialAuditDashboard {
 			`${c.yr}-${c.mn}: مقبوضات ${c.received?.toLocaleString()} - مدفوعات ${c.paid?.toLocaleString()}`
 		).join('\n');
 
+		// New data sections for AI
+		const balance_sheet = (this.data.balance_sheet || []).map(b =>
+			`${b.root_type}: مدين ${b.total_debit?.toLocaleString()} - دائن ${b.total_credit?.toLocaleString()} - صافي ${b.net_balance?.toLocaleString()}`
+		).join('\n');
+
+		const gl_vouchers = (this.data.gl_voucher_summary || []).map(v =>
+			`${v.voucher_type}: ${v.doc_count} مستند - مدين ${v.total_debit?.toLocaleString()} - دائن ${v.total_credit?.toLocaleString()}`
+		).join('\n');
+
+		const stock_vouchers = (this.data.stock_voucher_summary || []).map(v =>
+			`${v.voucher_type}: ${v.doc_count} مستند - وارد ${v.qty_in?.toLocaleString()} - صادر ${v.qty_out?.toLocaleString()}`
+		).join('\n');
+
+		const bank_balances = (this.data.bank_balances || []).map(b =>
+			`${b.account_name} (${b.account_type}): ${b.balance?.toLocaleString()}`
+		).join('\n');
+
+		const sales_returns = (this.data.sales_returns || []).map(r =>
+			`${r.customer_name}: ${r.return_count} مرتجع - ${r.return_amount?.toLocaleString()}`
+		).join('\n');
+
+		const purchase_returns = (this.data.purchase_returns || []).map(r =>
+			`${r.supplier_name}: ${r.return_count} مرتجع - ${r.return_amount?.toLocaleString()}`
+		).join('\n');
+
+		const stock_movement = (this.data.stock_movement || []).slice(0, 10).map(s =>
+			`${s.item_name}: وارد ${s.qty_in?.toLocaleString()} - صادر ${s.qty_out?.toLocaleString()} - تغير القيمة ${s.value_change?.toLocaleString()}`
+		).join('\n');
+
+		const custom_dt = (this.data.custom_doctypes_analysis?.submittable_doctypes || []).map(d =>
+			`${d.doctype} (${d.module}${d.is_custom ? ' - مخصص' : ''}): ${d.doc_count} مستند`
+		).join('\n');
+
+		const installed_apps = (this.data.installed_apps || []).map(a =>
+			`${a.app}: ${a.version || 'N/A'}`
+		).join('\n');
+
 		return `أنت محلل مالي ومدقق حسابات خبير. حلل البيانات المالية التالية لشركة "${this.data.company}" للفترة من ${this.data.from_date} إلى ${this.data.to_date} وقدم تقريراً شاملاً باللغة العربية.
 
 ## المؤشرات المالية الرئيسية:
@@ -530,11 +998,29 @@ class FinancialAuditDashboard {
 - عدد فواتير المبيعات: ${k.si_count}
 - عدد فواتير المشتريات: ${k.pi_count}
 
+## ملخص الميزانية العمومية:
+${balance_sheet}
+
+## أنواع القيود المحاسبية:
+${gl_vouchers}
+
+## أنواع حركات المخزون:
+${stock_vouchers}
+
+## أرصدة البنوك والصناديق:
+${bank_balances}
+
 ## أعلى 10 عملاء:
 ${top_cust}
 
 ## أعلى 10 منتجات:
 ${top_prod}
+
+## مرتجعات المبيعات:
+${sales_returns || 'لا توجد مرتجعات'}
+
+## مرتجعات المشتريات:
+${purchase_returns || 'لا توجد مرتجعات'}
 
 ## تقادم الذمم المدينة:
 ${ar}
@@ -548,14 +1034,26 @@ ${expenses}
 ## التدفق النقدي الشهري:
 ${cf}
 
+## أعلى حركات المخزون:
+${stock_movement}
+
+## المستندات والتطبيقات:
+${custom_dt}
+
+## التطبيقات المثبتة:
+${installed_apps}
+
 ## المطلوب:
 1. **تقييم الصحة المالية** (درجة من 100 مع تفسير)
 2. **تحليل المخاطر**: حدد أهم 5 مخاطر مالية
 3. **كشف الشذوذ**: أنماط غير طبيعية في البيانات
 4. **تحليل التدفق النقدي**: هل الشركة قادرة على تغطية التزاماتها؟
-5. **نقاط القوة**: ما هي الإيجابيات؟
-6. **نقاط الضعف**: ما يجب معالجته؟
-7. **توصيات عملية**: 5-7 توصيات قابلة للتنفيذ لتحسين الأداء
+5. **تحليل المخزون**: هل هناك مخزون راكد أو مشاكل في إدارة المخزون؟
+6. **تحليل المبيعات والمرتجعات**: نسبة المرتجعات وتأثيرها
+7. **نقاط القوة**: ما هي الإيجابيات؟
+8. **نقاط الضعف**: ما يجب معالجته؟
+9. **توصيات عملية**: 7-10 توصيات قابلة للتنفيذ لتحسين الأداء
+10. **تحليل التطبيقات المخصصة**: هل هناك مخاطر من التخصيصات؟
 
 قدم التقرير منظماً بعناوين واضحة باللغة العربية.`;
 	}
