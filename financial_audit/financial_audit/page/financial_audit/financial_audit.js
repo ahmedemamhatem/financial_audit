@@ -13,12 +13,13 @@ class FinancialAuditDashboard {
 		this.page = page;
 		this.filters = {};
 		this.data = {};
-		this.charts = {};
+		this.echarts_instances = {};
 		this.currency = 'EGP';
 		this.months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 		this.setup_page();
 		this.load_puter_js();
+		this.load_echarts();
 		this.render_filters();
 		this.load_data();
 	}
@@ -32,7 +33,16 @@ class FinancialAuditDashboard {
 		}
 	}
 
-	make_section(cls, icon, icon_bg, icon_color, title, body_cls) {
+	load_echarts() {
+		if (!window.echarts) {
+			const script = document.createElement('script');
+			script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js';
+			script.async = true;
+			document.head.appendChild(script);
+		}
+	}
+
+	make_section(cls, icon, icon_bg, icon_color, title, body_cls, desc) {
 		return `
 			<div class="${cls}">
 				<div class="section-header" data-target="${body_cls}">
@@ -42,11 +52,12 @@ class FinancialAuditDashboard {
 					</span>
 					<span class="toggle-chevron">&#9660;</span>
 				</div>
+				${desc ? `<div class="section-desc">${desc}</div>` : ''}
 				<div class="section-body ${body_cls}"></div>
 			</div>`;
 	}
 
-	make_chart_section(icon, icon_bg, icon_color, title, chart_cls, stats_cls) {
+	make_chart_section(icon, icon_bg, icon_color, title, chart_cls, stats_cls, desc) {
 		return `
 			<div class="chart-section">
 				<div class="section-header" data-target="${chart_cls}">
@@ -56,6 +67,7 @@ class FinancialAuditDashboard {
 					</span>
 					<span class="toggle-chevron">&#9660;</span>
 				</div>
+				${desc ? `<div class="section-desc">${desc}</div>` : ''}
 				<div class="section-body ${chart_cls}">
 					<div class="chart-container ${chart_cls}-chart"></div>
 					${stats_cls ? `<div class="chart-stats ${stats_cls}"></div>` : ''}
@@ -72,27 +84,89 @@ class FinancialAuditDashboard {
 				<div class="filters-section"></div>
 				<div class="kpi-cards"></div>
 
-				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee', 'ملخص الميزانية العمومية', 'balance-sheet-body')}
-				${this.make_chart_section('fa-bar-chart', '#ecfdf5', '#10b981', 'اتجاهات الإيرادات والمصروفات الشهرية', 'monthly-chart', 'monthly-chart-stats')}
-				${this.make_chart_section('fa-line-chart', '#f5f3ff', '#8b5cf6', 'المبيعات اليومية', 'daily-sales-chart', 'daily-chart-stats')}
-				${this.make_chart_section('fa-pie-chart', '#fef2f2', '#ef4444', 'توزيع المصروفات', 'expense-pie', '')}
-				${this.make_chart_section('fa-exchange', '#f0fdfa', '#14b8a6', 'التدفق النقدي الشهري', 'cash-flow-chart', 'cash-flow-stats')}
-				${this.make_section('data-section pnl-section', 'fa-file-text-o', '#fff7ed', '#f97316', 'قائمة الدخل', 'pnl-body')}
-				${this.make_section('data-section', 'fa-book', '#eef1ff', '#4361ee', 'ملخص قيود اليومية حسب النوع', 'gl-voucher-body')}
-				${this.make_section('data-section', 'fa-cubes', '#fff7ed', '#f97316', 'ملخص حركات المخزون حسب النوع', 'stock-voucher-body')}
-				${this.make_section('data-section', 'fa-users', '#fdf2f8', '#ec4899', 'أعلى العملاء حسب الإيرادات', 'top-customers-body')}
-				${this.make_section('data-section', 'fa-shopping-bag', '#ecfdf5', '#10b981', 'أعلى المنتجات حسب الإيرادات', 'top-products-body')}
-				${this.make_section('data-section', 'fa-truck', '#fff7ed', '#f97316', 'أعلى الموردين', 'top-suppliers-body')}
-				${this.make_section('data-section', 'fa-undo', '#fef2f2', '#ef4444', 'مرتجعات المبيعات (إشعارات دائنة)', 'sales-returns-body')}
-				${this.make_section('data-section', 'fa-reply', '#fffbeb', '#f59e0b', 'مرتجعات المشتريات (إشعارات مدينة)', 'purchase-returns-body')}
-				${this.make_section('data-section', 'fa-clock-o', '#fdf2f8', '#ec4899', 'تقادم الذمم المدينة (العملاء)', 'ar-aging-body')}
-				${this.make_section('data-section', 'fa-clock-o', '#fffbeb', '#f59e0b', 'تقادم الذمم الدائنة (الموردين)', 'ap-aging-body')}
-				${this.make_section('data-section', 'fa-university', '#f0fdfa', '#14b8a6', 'أرصدة البنوك والصناديق', 'bank-balances-body')}
-				${this.make_section('data-section', 'fa-credit-card', '#f5f3ff', '#8b5cf6', 'أنماط الدفع', 'payment-modes-body')}
-				${this.make_section('data-section', 'fa-pencil-square-o', '#eef1ff', '#4361ee', 'ملخص قيود اليومية', 'journal-entries-body')}
-				${this.make_section('data-section', 'fa-archive', '#f8fafc', '#64748b', 'تقييم المخزون حسب المخزن', 'inventory-body')}
-				${this.make_section('data-section', 'fa-arrows-v', '#fff7ed', '#f97316', 'أعلى حركات المخزون', 'stock-movement-body')}
-				${this.make_section('data-section', 'fa-hourglass-half', '#fef2f2', '#ef4444', 'تقادم المخزون (مخزون راكد)', 'stock-ageing-body')}
+				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee',
+					'ملخص الميزانية العمومية', 'balance-sheet-body',
+					'ملخص إجمالي الأصول والالتزامات وحقوق الملكية والإيرادات والمصروفات خلال الفترة المحددة')}
+
+				${this.make_chart_section('fa-bar-chart', '#ecfdf5', '#10b981',
+					'اتجاهات الإيرادات والمصروفات الشهرية', 'monthly-chart', 'monthly-chart-stats',
+					'مقارنة شهرية بين الإيرادات والمصروفات لتتبع الأداء المالي عبر الزمن')}
+
+				${this.make_chart_section('fa-line-chart', '#f5f3ff', '#8b5cf6',
+					'المبيعات اليومية', 'daily-sales-chart', 'daily-chart-stats',
+					'تتبع حركة المبيعات اليومية لكشف الأنماط والاتجاهات الموسمية')}
+
+				${this.make_chart_section('fa-pie-chart', '#fef2f2', '#ef4444',
+					'توزيع المصروفات', 'expense-pie', '',
+					'توزيع المصروفات حسب الفئة الرئيسية لمعرفة أكبر بنود الإنفاق')}
+
+				${this.make_chart_section('fa-exchange', '#f0fdfa', '#14b8a6',
+					'التدفق النقدي الشهري', 'cash-flow-chart', 'cash-flow-stats',
+					'مقارنة المقبوضات والمدفوعات الشهرية لتقييم السيولة النقدية')}
+
+				${this.make_section('data-section pnl-section', 'fa-file-text-o', '#fff7ed', '#f97316',
+					'قائمة الدخل', 'pnl-body',
+					'تفصيل الإيرادات والمصروفات وصافي الربح أو الخسارة للفترة المحددة')}
+
+				${this.make_section('data-section', 'fa-book', '#eef1ff', '#4361ee',
+					'ملخص قيود اليومية حسب النوع', 'gl-voucher-body',
+					'إجمالي القيود المحاسبية مصنفة حسب نوع المستند المنشئ لها')}
+
+				${this.make_section('data-section', 'fa-cubes', '#fff7ed', '#f97316',
+					'ملخص حركات المخزون حسب النوع', 'stock-voucher-body',
+					'حركات المخزون الواردة والصادرة مصنفة حسب نوع مستند المخزون')}
+
+				${this.make_section('data-section', 'fa-users', '#fdf2f8', '#ec4899',
+					'أعلى العملاء حسب الإيرادات', 'top-customers-body',
+					'ترتيب العملاء حسب حجم المبيعات مع نسبة التحصيل والمستحقات المتبقية')}
+
+				${this.make_section('data-section', 'fa-shopping-bag', '#ecfdf5', '#10b981',
+					'أعلى المنتجات حسب الإيرادات', 'top-products-body',
+					'أكثر المنتجات مبيعاً مرتبة حسب إجمالي الإيرادات والكمية المباعة')}
+
+				${this.make_section('data-section', 'fa-truck', '#fff7ed', '#f97316',
+					'أعلى الموردين', 'top-suppliers-body',
+					'أكبر الموردين حسب حجم المشتريات مع المستحقات المتبقية لكل مورد')}
+
+				${this.make_section('data-section', 'fa-undo', '#fef2f2', '#ef4444',
+					'مرتجعات المبيعات (إشعارات دائنة)', 'sales-returns-body',
+					'ملخص مرتجعات المبيعات حسب العميل لتقييم جودة المنتجات ورضا العملاء')}
+
+				${this.make_section('data-section', 'fa-reply', '#fffbeb', '#f59e0b',
+					'مرتجعات المشتريات (إشعارات مدينة)', 'purchase-returns-body',
+					'ملخص مرتجعات المشتريات حسب المورد لتقييم جودة التوريد')}
+
+				${this.make_section('data-section', 'fa-clock-o', '#fdf2f8', '#ec4899',
+					'تقادم الذمم المدينة (العملاء)', 'ar-aging-body',
+					'تحليل أعمار المبالغ المستحقة من العملاء لمتابعة التحصيل وإدارة المخاطر')}
+
+				${this.make_section('data-section', 'fa-clock-o', '#fffbeb', '#f59e0b',
+					'تقادم الذمم الدائنة (الموردين)', 'ap-aging-body',
+					'تحليل أعمار المبالغ المستحقة للموردين لإدارة جدول السداد والتدفق النقدي')}
+
+				${this.make_section('data-section', 'fa-university', '#f0fdfa', '#14b8a6',
+					'أرصدة البنوك والصناديق', 'bank-balances-body',
+					'أرصدة جميع الحسابات البنكية والصناديق النقدية في تاريخ التقرير')}
+
+				${this.make_section('data-section', 'fa-credit-card', '#f5f3ff', '#8b5cf6',
+					'أنماط الدفع', 'payment-modes-body',
+					'توزيع المدفوعات والمقبوضات حسب طريقة الدفع المستخدمة')}
+
+				${this.make_section('data-section', 'fa-pencil-square-o', '#eef1ff', '#4361ee',
+					'ملخص قيود اليومية', 'journal-entries-body',
+					'ملخص القيود اليدوية المسجلة مصنفة حسب نوع القيد')}
+
+				${this.make_section('data-section', 'fa-archive', '#f8fafc', '#64748b',
+					'تقييم المخزون حسب المخزن', 'inventory-body',
+					'قيمة المخزون الحالية موزعة على المخازن مع عدد الأصناف والكميات')}
+
+				${this.make_section('data-section', 'fa-arrows-v', '#fff7ed', '#f97316',
+					'أعلى حركات المخزون', 'stock-movement-body',
+					'أكثر الأصناف حركة من حيث الكميات الواردة والصادرة وتغير القيمة')}
+
+				${this.make_section('data-section', 'fa-hourglass-half', '#fef2f2', '#ef4444',
+					'تقادم المخزون (مخزون راكد)', 'stock-ageing-body',
+					'الأصناف التي مضى على تخزينها فترة طويلة لتحديد المخزون الراكد')}
 
 				<!-- AI Analysis -->
 				<div class="ai-analysis-section" style="display: none;">
@@ -140,7 +214,8 @@ class FinancialAuditDashboard {
 			if ($(e.target).hasClass('close-ai-btn')) return;
 			const target = $(this).data('target');
 			if (!target) return;
-			const $body = $(this).siblings('.section-body, .ai-analysis-body');
+			const $parent = $(this).closest('.data-section, .chart-section');
+			const $body = $parent.find('.section-body');
 			const $chevron = $(this).find('.toggle-chevron');
 			$body.slideToggle(200);
 			$chevron.toggleClass('collapsed');
@@ -148,6 +223,13 @@ class FinancialAuditDashboard {
 
 		// Close AI
 		this.page.main.on('click', '.close-ai-btn', () => this.$ai.slideUp());
+
+		// Resize echarts on window resize
+		$(window).on('resize', () => {
+			Object.values(this.echarts_instances).forEach(chart => {
+				if (chart && !chart.isDisposed()) chart.resize();
+			});
+		});
 	}
 
 	render_filters() {
@@ -242,6 +324,22 @@ class FinancialAuditDashboard {
 		this.render_stock_ageing();
 	}
 
+	// ─── ECharts Helper ─────────────────────────────────────
+	init_echart(container_el, options) {
+		if (!window.echarts) {
+			setTimeout(() => this.init_echart(container_el, options), 500);
+			return null;
+		}
+		const key = container_el.className;
+		if (this.echarts_instances[key]) {
+			this.echarts_instances[key].dispose();
+		}
+		const chart = echarts.init(container_el, null, { renderer: 'canvas' });
+		chart.setOption(options);
+		this.echarts_instances[key] = chart;
+		return chart;
+	}
+
 	// ─── KPI Cards ─────────────────────────────────────────
 	render_kpi_cards() {
 		const k = this.data.kpis;
@@ -323,7 +421,7 @@ class FinancialAuditDashboard {
 		this.$pnl.html(`<table class="audit-table"><thead><tr><th></th><th>الحساب</th><th>المبلغ</th></tr></thead><tbody>${rows}</tbody></table>`);
 	}
 
-	// ─── Charts ────────────────────────────────────────────
+	// ─── Charts (ECharts) ─────────────────────────────────
 	render_monthly_chart() {
 		if (!this.data.monthly_trends || !this.data.monthly_trends.length) {
 			this.$monthly_chart.html(this.empty_msg());
@@ -339,19 +437,45 @@ class FinancialAuditDashboard {
 		const avg_revenue = total_revenue / trends.length;
 		const best_month = trends.reduce((best, t) => (t.revenue || 0) > (best.revenue || 0) ? t : best, trends[0]);
 
-		this.charts.monthly = new frappe.Chart(this.$monthly_chart[0], {
-			type: 'bar', height: 320,
-			colors: ['#10b981', '#ef4444'],
-			data: {
-				labels: labels,
-				datasets: [
-					{ name: 'الإيرادات', values: trends.map(t => t.revenue) },
-					{ name: 'المصروفات', values: trends.map(t => t.expenses) }
-				]
+		this.init_echart(this.$monthly_chart[0], {
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: { type: 'shadow' },
+				formatter: (params) => {
+					let html = `<div style="font-weight:700;margin-bottom:4px">${params[0].name}</div>`;
+					params.forEach(p => {
+						html += `<div>${p.marker} ${p.seriesName}: <strong>${this.fc(p.value)}</strong></div>`;
+					});
+					return html;
+				}
 			},
-			barOptions: { spaceRatio: 0.35 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) },
-			axisOptions: { xIsSeries: true }
+			legend: {
+				data: ['الإيرادات', 'المصروفات'],
+				bottom: 0,
+				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+			},
+			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
+			xAxis: {
+				type: 'category',
+				data: labels,
+				axisLabel: { fontSize: 11, fontFamily: 'IBM Plex Sans Arabic', rotate: labels.length > 6 ? 30 : 0 }
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: { fontSize: 11, formatter: (v) => this.short_number(v) }
+			},
+			series: [
+				{
+					name: 'الإيرادات', type: 'bar', data: trends.map(t => t.revenue),
+					itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] },
+					barMaxWidth: 32
+				},
+				{
+					name: 'المصروفات', type: 'bar', data: trends.map(t => t.expenses),
+					itemStyle: { color: '#ef4444', borderRadius: [4, 4, 0, 0] },
+					barMaxWidth: 32
+				}
+			]
 		});
 
 		this.$monthly_stats.html(`
@@ -376,16 +500,47 @@ class FinancialAuditDashboard {
 		const best_day = sales.reduce((best, d) => (d.total_sales || 0) > (best.total_sales || 0) ? d : best, sales[0]);
 		const total_invoices = sales.reduce((s, d) => s + (d.invoice_count || 0), 0);
 
-		this.charts.daily = new frappe.Chart(this.$daily_chart[0], {
-			type: 'line', height: 280,
-			colors: ['#8b5cf6'],
-			data: {
-				labels: sales.map(s => frappe.datetime.str_to_user(s.date)),
-				datasets: [{ name: 'المبيعات', values: sales.map(s => s.total_sales) }]
+		this.init_echart(this.$daily_chart[0], {
+			tooltip: {
+				trigger: 'axis',
+				formatter: (params) => {
+					const p = params[0];
+					return `<div style="font-weight:700;margin-bottom:4px">${p.name}</div>
+						<div>${p.marker} المبيعات: <strong>${this.fc(p.value)}</strong></div>`;
+				}
 			},
-			lineOptions: { regionFill: 1, hideDots: 0, spline: 1, dotSize: 3 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) },
-			axisOptions: { xIsSeries: true }
+			legend: {
+				data: ['المبيعات'],
+				bottom: 0,
+				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+			},
+			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
+			xAxis: {
+				type: 'category',
+				data: sales.map(s => frappe.datetime.str_to_user(s.date)),
+				axisLabel: { fontSize: 10, rotate: 45 },
+				boundaryGap: false
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: { fontSize: 11, formatter: (v) => this.short_number(v) }
+			},
+			series: [{
+				name: 'المبيعات', type: 'line', data: sales.map(s => s.total_sales),
+				smooth: true,
+				symbol: 'circle', symbolSize: 5,
+				lineStyle: { width: 3, color: '#8b5cf6' },
+				itemStyle: { color: '#8b5cf6' },
+				areaStyle: {
+					color: {
+						type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+						colorStops: [
+							{ offset: 0, color: 'rgba(139,92,246,0.25)' },
+							{ offset: 1, color: 'rgba(139,92,246,0.02)' }
+						]
+					}
+				}
+			}]
 		});
 
 		this.$daily_stats.html(`
@@ -402,15 +557,33 @@ class FinancialAuditDashboard {
 
 		this.$expense_pie.empty();
 		const colors = ['#10b981', '#ef4444', '#4361ee', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#64748b', '#06b6d4'];
+		const top10 = bd.slice(0, 10);
 
-		this.charts.expense = new frappe.Chart(this.$expense_pie[0], {
-			type: 'pie', height: 300,
-			colors: colors,
-			data: {
-				labels: bd.slice(0, 10).map(e => e.category_name),
-				datasets: [{ values: bd.slice(0, 10).map(e => e.amount) }]
+		this.init_echart(this.$expense_pie[0], {
+			tooltip: {
+				trigger: 'item',
+				formatter: (p) => `<div style="font-weight:700;margin-bottom:4px">${p.name}</div>
+					<div>${p.marker} ${this.fc(p.value)} (${p.percent}%)</div>`
 			},
-			tooltipOptions: { formatTooltipY: d => this.fc(d) }
+			legend: {
+				orient: 'vertical',
+				left: 16,
+				top: 'center',
+				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+			},
+			color: colors,
+			series: [{
+				type: 'pie',
+				radius: ['40%', '70%'],
+				center: ['65%', '50%'],
+				avoidLabelOverlap: true,
+				itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+				label: { show: false },
+				emphasis: {
+					label: { show: true, fontSize: 13, fontWeight: 'bold', fontFamily: 'IBM Plex Sans Arabic' }
+				},
+				data: top10.map(e => ({ name: e.category_name, value: e.amount }))
+			}]
 		});
 	}
 
@@ -428,19 +601,47 @@ class FinancialAuditDashboard {
 		const total_paid = cf.reduce((s, c) => s + (c.paid || 0), 0);
 		const net_flow = total_received - total_paid;
 
-		this.charts.cash_flow = new frappe.Chart(this.$cash_flow[0], {
-			type: 'bar', height: 320,
-			colors: ['#14b8a6', '#f97316'],
-			data: {
-				labels: labels,
-				datasets: [
-					{ name: 'المقبوضات', values: cf.map(c => c.received) },
-					{ name: 'المدفوعات', values: cf.map(c => c.paid) }
-				]
+		this.init_echart(this.$cash_flow[0], {
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: { type: 'shadow' },
+				formatter: (params) => {
+					let html = `<div style="font-weight:700;margin-bottom:4px">${params[0].name}</div>`;
+					params.forEach(p => {
+						html += `<div>${p.marker} ${p.seriesName}: <strong>${this.fc(p.value)}</strong></div>`;
+					});
+					const net = (params[0]?.value || 0) - (params[1]?.value || 0);
+					html += `<div style="border-top:1px solid #eee;margin-top:4px;padding-top:4px;font-weight:700;color:${net >= 0 ? '#059669' : '#dc2626'}">صافي: ${this.fc(net)}</div>`;
+					return html;
+				}
 			},
-			barOptions: { spaceRatio: 0.35 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) },
-			axisOptions: { xIsSeries: true }
+			legend: {
+				data: ['المقبوضات', 'المدفوعات'],
+				bottom: 0,
+				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+			},
+			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
+			xAxis: {
+				type: 'category',
+				data: labels,
+				axisLabel: { fontSize: 11, fontFamily: 'IBM Plex Sans Arabic', rotate: labels.length > 6 ? 30 : 0 }
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: { fontSize: 11, formatter: (v) => this.short_number(v) }
+			},
+			series: [
+				{
+					name: 'المقبوضات', type: 'bar', data: cf.map(c => c.received),
+					itemStyle: { color: '#14b8a6', borderRadius: [4, 4, 0, 0] },
+					barMaxWidth: 32
+				},
+				{
+					name: 'المدفوعات', type: 'bar', data: cf.map(c => c.paid),
+					itemStyle: { color: '#f97316', borderRadius: [4, 4, 0, 0] },
+					barMaxWidth: 32
+				}
+			]
 		});
 
 		this.$cash_flow_stats.html(`
@@ -1015,17 +1216,17 @@ ${installed_apps}
 					<div class="ai-summary-card">
 						<div class="label">صافي الربح</div>
 						<div class="value" style="color:${k.net_profit >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.net_profit)}</div>
-						<div class="sub" style="color:var(--fa-text-muted)">هامش ${k.net_margin.toFixed(1)}%</div>
+						<div class="sub" style="color:var(--fa-text-sub)">هامش ${k.net_margin.toFixed(1)}%</div>
 					</div>
 					<div class="ai-summary-card">
 						<div class="label">السيولة النقدية</div>
 						<div class="value" style="color:${k.cash_balance >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.cash_balance)}</div>
-						<div class="sub" style="color:var(--fa-text-muted)">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
+						<div class="sub" style="color:var(--fa-text-sub)">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
 					</div>
 					<div class="ai-summary-card">
 						<div class="label">نسبة التحصيل</div>
 						<div class="value" style="color:${collection_pct >= 70 ? '#059669' : '#d97706'}">${collection_pct}%</div>
-						<div class="sub" style="color:var(--fa-text-muted)">ذمم: ${this.fc(k.ar_outstanding)}</div>
+						<div class="sub" style="color:var(--fa-text-sub)">ذمم: ${this.fc(k.ar_outstanding)}</div>
 					</div>
 				</div>
 
@@ -1079,6 +1280,12 @@ ${installed_apps}
 	// ─── Utilities ─────────────────────────────────────────
 	fc(value) {
 		return format_currency(value || 0, this.currency);
+	}
+
+	short_number(value) {
+		if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+		if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(0) + 'K';
+		return value.toString();
 	}
 
 	aging_badge(days) {
