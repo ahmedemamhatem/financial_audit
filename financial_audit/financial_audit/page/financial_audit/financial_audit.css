@@ -132,6 +132,14 @@
 	direction: ltr;
 }
 
+.kpi-card .kpi-desc {
+	font-size: 10px;
+	color: var(--fa-text-sub);
+	font-weight: 400 !important;
+	margin-top: 3px;
+	line-height: 1.3;
+}
+
 /* KPI colors */
 .kpi-card.revenue::before { background: #059669; }
 .kpi-card.revenue .kpi-value { color: #059669; }

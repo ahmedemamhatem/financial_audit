@@ -82,9 +82,8 @@ class FinancialAuditDashboard {
 		this.page.main.html(`
 			<div class="financial-audit-page" dir="rtl">
 				<div class="filters-section"></div>
-				<div class="kpi-cards"></div>
 
-				<!-- AI Analysis — at top so it appears first when triggered -->
+				<!-- AI Analysis — right after filters, before everything -->
 				<div class="ai-analysis-section" style="display: none;">
 					<div class="section-header ai-header">
 						<span class="section-title"><i class="fa fa-magic" style="margin-left:8px"></i> التحليل الذكي (AI)</span>
@@ -92,6 +91,8 @@ class FinancialAuditDashboard {
 					</div>
 					<div class="ai-analysis-body"></div>
 				</div>
+
+				<div class="kpi-cards"></div>
 
 				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee',
 					'ملخص الميزانية العمومية', 'balance-sheet-body',
@@ -345,18 +346,18 @@ class FinancialAuditDashboard {
 	render_kpi_cards() {
 		const k = this.data.kpis;
 		const cards = [
-			{ title: 'الإيرادات', value: this.fc(k.revenue), css: 'revenue', icon: 'fa-money' },
-			{ title: 'تكلفة البضاعة', value: this.fc(k.cogs), css: 'cogs', icon: 'fa-shopping-cart' },
-			{ title: 'مجمل الربح', value: this.fc(k.gross_profit), css: k.gross_profit >= 0 ? 'profit' : 'loss', icon: 'fa-line-chart' },
-			{ title: 'هامش الربح الإجمالي', value: k.gross_margin.toFixed(1) + '%', css: 'margin', icon: 'fa-percent' },
-			{ title: 'صافي الربح', value: this.fc(k.net_profit), css: k.net_profit >= 0 ? 'profit' : 'loss', icon: 'fa-trophy' },
-			{ title: 'هامش صافي الربح', value: k.net_margin.toFixed(1) + '%', css: 'margin', icon: 'fa-percent' },
-			{ title: 'الذمم المدينة', value: this.fc(k.ar_outstanding), css: 'receivable', icon: 'fa-users' },
-			{ title: 'الذمم الدائنة', value: this.fc(k.ap_outstanding), css: 'payable', icon: 'fa-truck' },
-			{ title: 'الرصيد النقدي', value: this.fc(k.cash_balance), css: k.cash_balance >= 0 ? 'cash' : 'loss', icon: 'fa-university' },
-			{ title: 'قيمة المخزون', value: this.fc(k.inventory_value), css: 'inventory', icon: 'fa-cubes' },
-			{ title: 'فواتير المبيعات', value: k.si_count, css: 'revenue', icon: 'fa-file-text-o' },
-			{ title: 'فواتير المشتريات', value: k.pi_count, css: 'cogs', icon: 'fa-file-text' },
+			{ title: 'الإيرادات', desc: 'إجمالي المبيعات خلال الفترة', value: this.fc(k.revenue), css: 'revenue', icon: 'fa-money' },
+			{ title: 'تكلفة البضاعة', desc: 'تكلفة البضاعة المباعة', value: this.fc(k.cogs), css: 'cogs', icon: 'fa-shopping-cart' },
+			{ title: 'مجمل الربح', desc: 'الإيرادات - تكلفة البضاعة', value: this.fc(k.gross_profit), css: k.gross_profit >= 0 ? 'profit' : 'loss', icon: 'fa-line-chart' },
+			{ title: 'هامش الربح الإجمالي', desc: 'نسبة مجمل الربح للإيرادات', value: k.gross_margin.toFixed(1) + '%', css: 'margin', icon: 'fa-percent' },
+			{ title: 'صافي الربح', desc: 'الربح بعد كل المصروفات', value: this.fc(k.net_profit), css: k.net_profit >= 0 ? 'profit' : 'loss', icon: 'fa-trophy' },
+			{ title: 'هامش صافي الربح', desc: 'نسبة صافي الربح للإيرادات', value: k.net_margin.toFixed(1) + '%', css: 'margin', icon: 'fa-percent' },
+			{ title: 'الذمم المدينة', desc: 'المستحق من العملاء', value: this.fc(k.ar_outstanding), css: 'receivable', icon: 'fa-users' },
+			{ title: 'الذمم الدائنة', desc: 'المستحق للموردين', value: this.fc(k.ap_outstanding), css: 'payable', icon: 'fa-truck' },
+			{ title: 'الرصيد النقدي', desc: 'إجمالي النقد والبنوك', value: this.fc(k.cash_balance), css: k.cash_balance >= 0 ? 'cash' : 'loss', icon: 'fa-university' },
+			{ title: 'قيمة المخزون', desc: 'إجمالي قيمة المخزون الحالي', value: this.fc(k.inventory_value), css: 'inventory', icon: 'fa-cubes' },
+			{ title: 'فواتير المبيعات', desc: 'عدد فواتير البيع المعتمدة', value: k.si_count, css: 'revenue', icon: 'fa-file-text-o' },
+			{ title: 'فواتير المشتريات', desc: 'عدد فواتير الشراء المعتمدة', value: k.pi_count, css: 'cogs', icon: 'fa-file-text' },
 		];
 
 		this.$kpi.html(cards.map(c => `
@@ -364,6 +365,7 @@ class FinancialAuditDashboard {
 				<div class="kpi-icon"><i class="fa ${c.icon}"></i></div>
 				<div class="kpi-title">${c.title}</div>
 				<div class="kpi-value">${c.value}</div>
+				<div class="kpi-desc">${c.desc}</div>
 			</div>
 		`).join(''));
 	}
