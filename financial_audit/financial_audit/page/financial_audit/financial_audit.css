@@ -2,7 +2,7 @@
    Financial Audit Dashboard — Premium Professional Design
    ═══════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
 	--fa-primary: #1e40af;
@@ -48,7 +48,7 @@
 .financial-audit-page h3,
 .financial-audit-page h4,
 .financial-audit-page a {
-	font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif !important;
+	font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif !important;
 }
 
 /* ─── Page ─────────────────────────────────────── */
@@ -59,10 +59,11 @@
 	width: 100%;
 	background: #f8fafc;
 	min-height: 100vh;
-	font-size: 14px;
-	line-height: 1.7;
+	font-size: 15px;
+	line-height: 1.8;
 	color: var(--fa-text);
 	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 /* ─── Filters ──────────────────────────────────── */
@@ -92,7 +93,7 @@
 	font-weight: 700 !important;
 	margin-bottom: 4px;
 	color: var(--fa-text-mid);
-	font-size: 12px;
+	font-size: 13px;
 	letter-spacing: 0.01em;
 }
 
@@ -137,25 +138,25 @@
 }
 
 .kpi-card .kpi-title {
-	font-size: 12px;
+	font-size: 13px;
 	color: var(--fa-text-sub);
-	margin-bottom: 4px;
+	margin-bottom: 6px;
 	font-weight: 700 !important;
 }
 
 .kpi-card .kpi-value {
-	font-size: 16px;
+	font-size: 18px;
 	font-weight: 800 !important;
 	direction: ltr;
 	letter-spacing: -0.02em;
 }
 
 .kpi-card .kpi-desc {
-	font-size: 10px;
+	font-size: 11px;
 	color: var(--fa-text-muted);
-	font-weight: 400 !important;
-	margin-top: 4px;
-	line-height: 1.4;
+	font-weight: 500 !important;
+	margin-top: 6px;
+	line-height: 1.5;
 }
 
 /* KPI colors */
@@ -232,7 +233,7 @@
 }
 
 .section-title {
-	font-size: 14px;
+	font-size: 15px;
 	font-weight: 800 !important;
 	color: var(--fa-text);
 	display: flex;
@@ -241,9 +242,9 @@
 }
 
 .section-desc {
-	font-size: 12px;
+	font-size: 13px;
 	color: var(--fa-text-muted);
-	font-weight: 400 !important;
+	font-weight: 500 !important;
 	padding: 0 20px 10px;
 	border-bottom: 1px solid var(--fa-border-light);
 }
@@ -285,10 +286,10 @@
 
 .audit-table th,
 .audit-table td {
-	padding: 10px 16px;
+	padding: 11px 16px;
 	text-align: right;
 	border-bottom: 1px solid var(--fa-border-light);
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 500 !important;
 	white-space: nowrap;
 }
@@ -296,7 +297,7 @@
 .audit-table th {
 	font-weight: 800 !important;
 	color: var(--fa-text-sub);
-	font-size: 11px;
+	font-size: 12px;
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 	border-bottom: 2px solid var(--fa-border);

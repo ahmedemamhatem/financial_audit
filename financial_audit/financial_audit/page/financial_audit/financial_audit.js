@@ -40,6 +40,13 @@ class FinancialAuditDashboard {
 			script.async = true;
 			document.head.appendChild(script);
 		}
+		// Load Cairo font via link tag as backup
+		if (!document.querySelector('link[href*="Cairo"]')) {
+			const link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap';
+			document.head.appendChild(link);
+		}
 	}
 
 	make_section(cls, icon, icon_bg, icon_color, title, body_cls, desc) {
@@ -455,13 +462,13 @@ class FinancialAuditDashboard {
 			legend: {
 				data: ['الإيرادات', 'المصروفات'],
 				bottom: 0,
-				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+				textStyle: { fontFamily: 'Cairo', fontSize: 12 }
 			},
 			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
 			xAxis: {
 				type: 'category',
 				data: labels,
-				axisLabel: { fontSize: 11, fontFamily: 'IBM Plex Sans Arabic', rotate: labels.length > 6 ? 30 : 0 }
+				axisLabel: { fontSize: 11, fontFamily: 'Cairo', rotate: labels.length > 6 ? 30 : 0 }
 			},
 			yAxis: {
 				type: 'value',
@@ -515,7 +522,7 @@ class FinancialAuditDashboard {
 			legend: {
 				data: ['المبيعات'],
 				bottom: 0,
-				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+				textStyle: { fontFamily: 'Cairo', fontSize: 12 }
 			},
 			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
 			xAxis: {
@@ -572,7 +579,7 @@ class FinancialAuditDashboard {
 				orient: 'vertical',
 				left: 16,
 				top: 'center',
-				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+				textStyle: { fontFamily: 'Cairo', fontSize: 12 }
 			},
 			color: colors,
 			series: [{
@@ -583,7 +590,7 @@ class FinancialAuditDashboard {
 				itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
 				label: { show: false },
 				emphasis: {
-					label: { show: true, fontSize: 13, fontWeight: 'bold', fontFamily: 'IBM Plex Sans Arabic' }
+					label: { show: true, fontSize: 13, fontWeight: 'bold', fontFamily: 'Cairo' }
 				},
 				data: top10.map(e => ({ name: e.category_name, value: e.amount }))
 			}]
@@ -621,13 +628,13 @@ class FinancialAuditDashboard {
 			legend: {
 				data: ['المقبوضات', 'المدفوعات'],
 				bottom: 0,
-				textStyle: { fontFamily: 'IBM Plex Sans Arabic', fontSize: 12 }
+				textStyle: { fontFamily: 'Cairo', fontSize: 12 }
 			},
 			grid: { top: 20, right: 16, bottom: 40, left: 16, containLabel: true },
 			xAxis: {
 				type: 'category',
 				data: labels,
-				axisLabel: { fontSize: 11, fontFamily: 'IBM Plex Sans Arabic', rotate: labels.length > 6 ? 30 : 0 }
+				axisLabel: { fontSize: 11, fontFamily: 'Cairo', rotate: labels.length > 6 ? 30 : 0 }
 			},
 			yAxis: {
 				type: 'value',
