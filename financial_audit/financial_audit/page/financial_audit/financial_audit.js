@@ -184,15 +184,6 @@ class FinancialAuditDashboard {
 					<div class="section-body stock-ageing-body"></div>
 				</div>
 
-				<!-- Custom Doctypes Analysis -->
-				<div class="data-section custom-doctypes-section">
-					<div class="section-header">
-						<span class="section-title">تحليل المستندات والتطبيقات المثبتة</span>
-						<span class="toggle-btn" data-target="custom-doctypes-body">▼</span>
-					</div>
-					<div class="section-body custom-doctypes-body"></div>
-				</div>
-
 				<!-- AI Analysis -->
 				<div class="ai-analysis-section" style="display: none;">
 					<div class="section-header ai-header">
@@ -231,7 +222,6 @@ class FinancialAuditDashboard {
 		this.$journal_entries = this.page.main.find('.journal-entries-body');
 		this.$payment_modes = this.page.main.find('.payment-modes-body');
 		this.$stock_ageing = this.page.main.find('.stock-ageing-body');
-		this.$custom_doctypes = this.page.main.find('.custom-doctypes-body');
 
 		// Toggle sections
 		this.page.main.on('click', '.toggle-btn', function() {
@@ -334,7 +324,6 @@ class FinancialAuditDashboard {
 		this.render_inventory_table();
 		this.render_stock_movement();
 		this.render_stock_ageing();
-		this.render_custom_doctypes();
 	}
 
 	// ─── KPI Cards ─────────────────────────────────────────
@@ -422,10 +411,11 @@ class FinancialAuditDashboard {
 		if (!trends.length) { this.$monthly_chart.html(this.empty_msg()); return; }
 
 		this.$monthly_chart.empty();
-		const labels = trends.map(t => `${t.yr}-${String(t.mn).padStart(2, '0')}`);
+		const months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+		const labels = trends.map(t => `${months_ar[t.mn]} ${t.yr}`);
 
 		this.charts.monthly = new frappe.Chart(this.$monthly_chart[0], {
-			type: 'bar', height: 300,
+			type: 'bar', height: 320,
 			colors: ['#28a745', '#dc3545'],
 			data: {
 				labels: labels,
@@ -434,8 +424,9 @@ class FinancialAuditDashboard {
 					{ name: 'المصروفات', values: trends.map(t => t.expenses) }
 				]
 			},
-			barOptions: { spaceRatio: 0.3 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) }
+			barOptions: { spaceRatio: 0.4 },
+			tooltipOptions: { formatTooltipY: d => this.fc(d) },
+			axisOptions: { xIsSeries: true }
 		});
 	}
 
@@ -445,14 +436,15 @@ class FinancialAuditDashboard {
 
 		this.$daily_chart.empty();
 		this.charts.daily = new frappe.Chart(this.$daily_chart[0], {
-			type: 'line', height: 250,
+			type: 'line', height: 280,
 			colors: ['#667eea'],
 			data: {
 				labels: sales.map(s => frappe.datetime.str_to_user(s.date)),
 				datasets: [{ name: 'المبيعات', values: sales.map(s => s.total_sales) }]
 			},
-			lineOptions: { regionFill: 1, hideDots: 0 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) }
+			lineOptions: { regionFill: 1, hideDots: 1, spline: 1 },
+			tooltipOptions: { formatTooltipY: d => this.fc(d) },
+			axisOptions: { xIsSeries: true }
 		});
 	}
 
@@ -462,12 +454,12 @@ class FinancialAuditDashboard {
 
 		this.$expense_pie.empty();
 		this.charts.expense = new frappe.Chart(this.$expense_pie[0], {
-			type: 'pie', height: 250,
+			type: 'percentage', height: 280,
+			colors: ['#28a745', '#dc3545', '#007bff', '#fd7e14', '#6f42c1', '#e83e8c', '#20c997', '#ffc107', '#6c757d', '#17a2b8'],
 			data: {
-				labels: bd.map(e => e.category_name),
-				datasets: [{ values: bd.map(e => e.amount) }]
+				labels: bd.slice(0, 8).map(e => e.category_name),
+				datasets: [{ values: bd.slice(0, 8).map(e => e.amount) }]
 			},
-			truncateLegends: 1, maxSlices: 10,
 			tooltipOptions: { formatTooltipY: d => this.fc(d) }
 		});
 	}
@@ -477,10 +469,11 @@ class FinancialAuditDashboard {
 		if (!cf.length) { this.$cash_flow.html(this.empty_msg()); return; }
 
 		this.$cash_flow.empty();
-		const labels = cf.map(c => `${c.yr}-${String(c.mn).padStart(2, '0')}`);
+		const months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+		const labels = cf.map(c => `${months_ar[c.mn]} ${c.yr}`);
 
 		this.charts.cash_flow = new frappe.Chart(this.$cash_flow[0], {
-			type: 'bar', height: 300,
+			type: 'bar', height: 320,
 			colors: ['#28a745', '#dc3545'],
 			data: {
 				labels: labels,
@@ -489,8 +482,9 @@ class FinancialAuditDashboard {
 					{ name: 'المدفوعات', values: cf.map(c => c.paid) }
 				]
 			},
-			barOptions: { spaceRatio: 0.3 },
-			tooltipOptions: { formatTooltipY: d => this.fc(d) }
+			barOptions: { spaceRatio: 0.4 },
+			tooltipOptions: { formatTooltipY: d => this.fc(d) },
+			axisOptions: { xIsSeries: true }
 		});
 	}
 
@@ -806,89 +800,6 @@ class FinancialAuditDashboard {
 		this.$stock_ageing.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>الصنف</th><th>المخزن</th><th>الكمية</th><th>القيمة</th><th>العمر</th>
 		</tr></thead><tbody>${rows}</tbody></table>`);
-	}
-
-	// ─── Custom Doctypes Analysis ─────────────────────────
-	render_custom_doctypes() {
-		const data = this.data.custom_doctypes_analysis;
-		if (!data) { this.$custom_doctypes.html(this.empty_msg()); return; }
-
-		let html = '';
-
-		// Submittable Doctypes
-		const doctypes = data.submittable_doctypes || [];
-		if (doctypes.length) {
-			const dt_rows = doctypes.map((d, i) => `<tr>
-				<td>${i + 1}</td>
-				<td><a href="/app/${frappe.router.slug(d.doctype)}">${d.doctype}</a></td>
-				<td>${d.module}</td>
-				<td>${d.is_custom ? '<span class="custom-badge">مخصص</span>' : '<span class="core-badge">أساسي</span>'}</td>
-				<td><strong>${d.doc_count}</strong></td>
-				<td>${d.amount_fields.length ? d.amount_fields.join(', ') : '-'}</td>
-			</tr>`).join('');
-
-			html += `<div class="sub-section">
-				<h4 class="sub-section-title">المستندات القابلة للاعتماد (${doctypes.length})</h4>
-				<table class="audit-table"><thead><tr>
-					<th>#</th><th>المستند</th><th>الوحدة</th><th>النوع</th><th>العدد</th><th>حقول المبالغ</th>
-				</tr></thead><tbody>${dt_rows}</tbody></table>
-			</div>`;
-		}
-
-		// Custom Fields on GL Entry
-		const gl_fields = data.custom_fields_on_gl || [];
-		if (gl_fields.length) {
-			const gl_rows = gl_fields.map((f, i) => `<tr>
-				<td>${i + 1}</td>
-				<td>${f.label || f.fieldname}</td>
-				<td><code>${f.fieldname}</code></td>
-				<td>${f.fieldtype}</td>
-				<td>${f.options || '-'}</td>
-			</tr>`).join('');
-
-			html += `<div class="sub-section">
-				<h4 class="sub-section-title">حقول مخصصة على قيود اليومية (${gl_fields.length})</h4>
-				<table class="audit-table"><thead><tr>
-					<th>#</th><th>التسمية</th><th>اسم الحقل</th><th>النوع</th><th>الخيارات</th>
-				</tr></thead><tbody>${gl_rows}</tbody></table>
-			</div>`;
-		}
-
-		// Accounting Dimensions
-		const dims = data.accounting_dimensions || [];
-		if (dims.length) {
-			const dim_rows = dims.map((d, i) => `<tr>
-				<td>${i + 1}</td>
-				<td>${d.label || d.name}</td>
-				<td>${d.document_type}</td>
-			</tr>`).join('');
-
-			html += `<div class="sub-section">
-				<h4 class="sub-section-title">الأبعاد المحاسبية (${dims.length})</h4>
-				<table class="audit-table"><thead><tr>
-					<th>#</th><th>البعد</th><th>نوع المستند</th>
-				</tr></thead><tbody>${dim_rows}</tbody></table>
-			</div>`;
-		}
-
-		// Installed Apps
-		const apps = this.data.installed_apps || [];
-		if (apps.length) {
-			const app_rows = apps.map((a, i) => `<tr>
-				<td>${i + 1}</td>
-				<td><strong>${a.app}</strong></td>
-				<td>${a.version || '-'}</td>
-			</tr>`).join('');
-
-			html += `<div class="sub-section">
-				<h4 class="sub-section-title">التطبيقات المثبتة (${apps.length})</h4>
-				<table class="audit-table"><thead><tr>
-					<th>#</th><th>التطبيق</th><th>الإصدار</th>
-				</tr></thead><tbody>${app_rows}</tbody></table>
-			</div>`;
-		}
-
-		this.$custom_doctypes.html(html || this.empty_msg());
 	}
 
 	// ─── AI Analysis ───────────────────────────────────────

@@ -136,6 +136,8 @@
 .section-body {
 	padding: 0;
 	overflow-x: auto;
+	overflow-y: auto;
+	max-height: 450px;
 }
 
 .toggle-btn {
@@ -164,8 +166,26 @@
 
 /* ─── Chart Containers ─────────────────── */
 .chart-container {
-	padding: 15px;
-	min-height: 250px;
+	padding: 20px;
+	min-height: 280px;
+	direction: ltr;
+}
+
+.chart-container .frappe-chart {
+	direction: ltr;
+}
+
+.chart-container .frappe-chart .chart-legend {
+	direction: rtl;
+	text-align: right;
+}
+
+.chart-section {
+	overflow: visible;
+}
+
+.charts-row.two-col > .chart-section {
+	overflow: visible;
 }
 
 /* ─── Tables ───────────────────────────── */
@@ -219,14 +239,6 @@
 
 .audit-table a:hover {
 	text-decoration: underline;
-}
-
-.audit-table code {
-	background: #f0f0f0;
-	padding: 2px 6px;
-	border-radius: 3px;
-	font-size: 0.85em;
-	color: #e83e8c;
 }
 
 /* ─── P&L Specific ─────────────────────── */
@@ -339,46 +351,6 @@
 .payment-type-badge.pay {
 	background: #f8d7da;
 	color: #721c24;
-}
-
-/* ─── Custom / Core Badges ────────────── */
-.custom-badge {
-	display: inline-block;
-	padding: 3px 10px;
-	border-radius: 12px;
-	font-size: 0.8em;
-	font-weight: 500;
-	background: #fff3cd;
-	color: #856404;
-}
-
-.core-badge {
-	display: inline-block;
-	padding: 3px 10px;
-	border-radius: 12px;
-	font-size: 0.8em;
-	font-weight: 500;
-	background: #d1ecf1;
-	color: #0c5460;
-}
-
-/* ─── Sub-sections (Custom Doctypes) ──── */
-.sub-section {
-	padding: 15px 20px;
-	border-bottom: 1px solid #eee;
-}
-
-.sub-section:last-child {
-	border-bottom: none;
-}
-
-.sub-section-title {
-	font-size: 0.95em;
-	font-weight: 600;
-	color: #495057;
-	margin: 0 0 12px 0;
-	padding-bottom: 8px;
-	border-bottom: 2px solid #e9ecef;
 }
 
 /* ─── AI Analysis Section ──────────────── */
@@ -530,10 +502,6 @@
 	.audit-table td {
 		padding: 8px 10px;
 		font-size: 0.85em;
-	}
-
-	.sub-section {
-		padding: 10px 15px;
 	}
 }
 
