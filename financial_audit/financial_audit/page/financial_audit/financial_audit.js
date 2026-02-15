@@ -32,6 +32,37 @@ class FinancialAuditDashboard {
 		}
 	}
 
+	make_section(cls, icon, icon_bg, icon_color, title, body_cls) {
+		return `
+			<div class="${cls}">
+				<div class="section-header" data-target="${body_cls}">
+					<span class="section-title">
+						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
+						${title}
+					</span>
+					<span class="toggle-chevron">&#9660;</span>
+				</div>
+				<div class="section-body ${body_cls}"></div>
+			</div>`;
+	}
+
+	make_chart_section(icon, icon_bg, icon_color, title, chart_cls, stats_cls) {
+		return `
+			<div class="chart-section">
+				<div class="section-header" data-target="${chart_cls}">
+					<span class="section-title">
+						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
+						${title}
+					</span>
+					<span class="toggle-chevron">&#9660;</span>
+				</div>
+				<div class="section-body ${chart_cls}">
+					<div class="chart-container ${chart_cls}-chart"></div>
+					${stats_cls ? `<div class="chart-stats ${stats_cls}"></div>` : ''}
+				</div>
+			</div>`;
+	}
+
 	setup_page() {
 		this.page.set_primary_action('تحديث', () => this.load_data(), 'refresh');
 		this.page.add_inner_button('تحليل ذكي (AI)', () => this.run_ai_analysis());
@@ -41,245 +72,27 @@ class FinancialAuditDashboard {
 				<div class="filters-section"></div>
 				<div class="kpi-cards"></div>
 
-				<!-- Balance Sheet Summary -->
-				<div class="data-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-balance-scale"></i></span>
-							ملخص الميزانية العمومية
-						</span>
-						<span class="toggle-btn" data-target="balance-sheet-body">▼</span>
-					</div>
-					<div class="section-body balance-sheet-body"></div>
-				</div>
-
-				<!-- Monthly Trends Chart -->
-				<div class="chart-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa fa-bar-chart"></i></span>
-							اتجاهات الإيرادات والمصروفات الشهرية
-						</span>
-					</div>
-					<div class="chart-container monthly-chart-container"></div>
-					<div class="chart-stats monthly-chart-stats"></div>
-				</div>
-
-				<!-- Daily Sales + Expense Breakdown -->
-				<div class="charts-row two-col">
-					<div class="chart-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#f5f3ff;color:#8b5cf6;"><i class="fa fa-line-chart"></i></span>
-								المبيعات اليومية
-							</span>
-						</div>
-						<div class="chart-container daily-sales-chart-container"></div>
-						<div class="chart-stats daily-chart-stats"></div>
-					</div>
-					<div class="chart-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-pie-chart"></i></span>
-								توزيع المصروفات
-							</span>
-						</div>
-						<div class="chart-container expense-pie-container"></div>
-					</div>
-				</div>
-
-				<!-- Cash Flow Chart -->
-				<div class="chart-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#f0fdfa;color:#14b8a6;"><i class="fa fa-exchange"></i></span>
-							التدفق النقدي الشهري
-						</span>
-					</div>
-					<div class="chart-container cash-flow-chart-container"></div>
-					<div class="chart-stats cash-flow-stats"></div>
-				</div>
-
-				<!-- P&L -->
-				<div class="data-section pnl-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-file-text-o"></i></span>
-							قائمة الدخل
-						</span>
-						<span class="toggle-btn" data-target="pnl-body">▼</span>
-					</div>
-					<div class="section-body pnl-body"></div>
-				</div>
-
-				<!-- GL Voucher Summary + Stock Voucher Summary -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-book"></i></span>
-								ملخص قيود اليومية حسب النوع
-							</span>
-							<span class="toggle-btn" data-target="gl-voucher-body">▼</span>
-						</div>
-						<div class="section-body gl-voucher-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-cubes"></i></span>
-								ملخص حركات المخزون حسب النوع
-							</span>
-							<span class="toggle-btn" data-target="stock-voucher-body">▼</span>
-						</div>
-						<div class="section-body stock-voucher-body"></div>
-					</div>
-				</div>
-
-				<!-- Top Customers + Top Products -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fdf2f8;color:#ec4899;"><i class="fa fa-users"></i></span>
-								أعلى العملاء حسب الإيرادات
-							</span>
-						</div>
-						<div class="section-body top-customers-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa fa-shopping-bag"></i></span>
-								أعلى المنتجات حسب الإيرادات
-							</span>
-						</div>
-						<div class="section-body top-products-body"></div>
-					</div>
-				</div>
-
-				<!-- Top Suppliers -->
-				<div class="data-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-truck"></i></span>
-							أعلى الموردين
-						</span>
-					</div>
-					<div class="section-body top-suppliers-body"></div>
-				</div>
-
-				<!-- Sales Returns + Purchase Returns -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-undo"></i></span>
-								مرتجعات المبيعات (إشعارات دائنة)
-							</span>
-						</div>
-						<div class="section-body sales-returns-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fffbeb;color:#f59e0b;"><i class="fa fa-reply"></i></span>
-								مرتجعات المشتريات (إشعارات مدينة)
-							</span>
-						</div>
-						<div class="section-body purchase-returns-body"></div>
-					</div>
-				</div>
-
-				<!-- AR Aging + AP Aging -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fdf2f8;color:#ec4899;"><i class="fa fa-clock-o"></i></span>
-								تقادم الذمم المدينة (العملاء)
-							</span>
-						</div>
-						<div class="section-body ar-aging-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fffbeb;color:#f59e0b;"><i class="fa fa-clock-o"></i></span>
-								تقادم الذمم الدائنة (الموردين)
-							</span>
-						</div>
-						<div class="section-body ap-aging-body"></div>
-					</div>
-				</div>
-
-				<!-- Bank Balances -->
-				<div class="data-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#f0fdfa;color:#14b8a6;"><i class="fa fa-university"></i></span>
-							أرصدة البنوك والصناديق
-						</span>
-						<span class="toggle-btn" data-target="bank-balances-body">▼</span>
-					</div>
-					<div class="section-body bank-balances-body"></div>
-				</div>
-
-				<!-- Payment Modes + Journal Entries -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#f5f3ff;color:#8b5cf6;"><i class="fa fa-credit-card"></i></span>
-								أنماط الدفع
-							</span>
-						</div>
-						<div class="section-body payment-modes-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-pencil-square-o"></i></span>
-								ملخص قيود اليومية
-							</span>
-						</div>
-						<div class="section-body journal-entries-body"></div>
-					</div>
-				</div>
-
-				<!-- Inventory + Stock Movement -->
-				<div class="tables-row two-col">
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#f8fafc;color:#64748b;"><i class="fa fa-warehouse"></i></span>
-								تقييم المخزون حسب المخزن
-							</span>
-						</div>
-						<div class="section-body inventory-body"></div>
-					</div>
-					<div class="data-section">
-						<div class="section-header">
-							<span class="section-title">
-								<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-arrows-v"></i></span>
-								أعلى حركات المخزون
-							</span>
-						</div>
-						<div class="section-body stock-movement-body"></div>
-					</div>
-				</div>
-
-				<!-- Stock Ageing -->
-				<div class="data-section">
-					<div class="section-header">
-						<span class="section-title">
-							<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-hourglass-half"></i></span>
-							تقادم المخزون (مخزون راكد)
-						</span>
-						<span class="toggle-btn" data-target="stock-ageing-body">▼</span>
-					</div>
-					<div class="section-body stock-ageing-body"></div>
-				</div>
+				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee', 'ملخص الميزانية العمومية', 'balance-sheet-body')}
+				${this.make_chart_section('fa-bar-chart', '#ecfdf5', '#10b981', 'اتجاهات الإيرادات والمصروفات الشهرية', 'monthly-chart', 'monthly-chart-stats')}
+				${this.make_chart_section('fa-line-chart', '#f5f3ff', '#8b5cf6', 'المبيعات اليومية', 'daily-sales-chart', 'daily-chart-stats')}
+				${this.make_chart_section('fa-pie-chart', '#fef2f2', '#ef4444', 'توزيع المصروفات', 'expense-pie', '')}
+				${this.make_chart_section('fa-exchange', '#f0fdfa', '#14b8a6', 'التدفق النقدي الشهري', 'cash-flow-chart', 'cash-flow-stats')}
+				${this.make_section('data-section pnl-section', 'fa-file-text-o', '#fff7ed', '#f97316', 'قائمة الدخل', 'pnl-body')}
+				${this.make_section('data-section', 'fa-book', '#eef1ff', '#4361ee', 'ملخص قيود اليومية حسب النوع', 'gl-voucher-body')}
+				${this.make_section('data-section', 'fa-cubes', '#fff7ed', '#f97316', 'ملخص حركات المخزون حسب النوع', 'stock-voucher-body')}
+				${this.make_section('data-section', 'fa-users', '#fdf2f8', '#ec4899', 'أعلى العملاء حسب الإيرادات', 'top-customers-body')}
+				${this.make_section('data-section', 'fa-shopping-bag', '#ecfdf5', '#10b981', 'أعلى المنتجات حسب الإيرادات', 'top-products-body')}
+				${this.make_section('data-section', 'fa-truck', '#fff7ed', '#f97316', 'أعلى الموردين', 'top-suppliers-body')}
+				${this.make_section('data-section', 'fa-undo', '#fef2f2', '#ef4444', 'مرتجعات المبيعات (إشعارات دائنة)', 'sales-returns-body')}
+				${this.make_section('data-section', 'fa-reply', '#fffbeb', '#f59e0b', 'مرتجعات المشتريات (إشعارات مدينة)', 'purchase-returns-body')}
+				${this.make_section('data-section', 'fa-clock-o', '#fdf2f8', '#ec4899', 'تقادم الذمم المدينة (العملاء)', 'ar-aging-body')}
+				${this.make_section('data-section', 'fa-clock-o', '#fffbeb', '#f59e0b', 'تقادم الذمم الدائنة (الموردين)', 'ap-aging-body')}
+				${this.make_section('data-section', 'fa-university', '#f0fdfa', '#14b8a6', 'أرصدة البنوك والصناديق', 'bank-balances-body')}
+				${this.make_section('data-section', 'fa-credit-card', '#f5f3ff', '#8b5cf6', 'أنماط الدفع', 'payment-modes-body')}
+				${this.make_section('data-section', 'fa-pencil-square-o', '#eef1ff', '#4361ee', 'ملخص قيود اليومية', 'journal-entries-body')}
+				${this.make_section('data-section', 'fa-archive', '#f8fafc', '#64748b', 'تقييم المخزون حسب المخزن', 'inventory-body')}
+				${this.make_section('data-section', 'fa-arrows-v', '#fff7ed', '#f97316', 'أعلى حركات المخزون', 'stock-movement-body')}
+				${this.make_section('data-section', 'fa-hourglass-half', '#fef2f2', '#ef4444', 'تقادم المخزون (مخزون راكد)', 'stock-ageing-body')}
 
 				<!-- AI Analysis -->
 				<div class="ai-analysis-section" style="display: none;">
@@ -295,12 +108,12 @@ class FinancialAuditDashboard {
 		// Cache references
 		this.$filters = this.page.main.find('.filters-section');
 		this.$kpi = this.page.main.find('.kpi-cards');
-		this.$monthly_chart = this.page.main.find('.monthly-chart-container');
+		this.$monthly_chart = this.page.main.find('.monthly-chart-chart');
 		this.$monthly_stats = this.page.main.find('.monthly-chart-stats');
-		this.$daily_chart = this.page.main.find('.daily-sales-chart-container');
+		this.$daily_chart = this.page.main.find('.daily-sales-chart-chart');
 		this.$daily_stats = this.page.main.find('.daily-chart-stats');
-		this.$expense_pie = this.page.main.find('.expense-pie-container');
-		this.$cash_flow = this.page.main.find('.cash-flow-chart-container');
+		this.$expense_pie = this.page.main.find('.expense-pie-chart');
+		this.$cash_flow = this.page.main.find('.cash-flow-chart-chart');
 		this.$cash_flow_stats = this.page.main.find('.cash-flow-stats');
 		this.$pnl = this.page.main.find('.pnl-body');
 		this.$top_customers = this.page.main.find('.top-customers-body');
@@ -322,11 +135,15 @@ class FinancialAuditDashboard {
 		this.$payment_modes = this.page.main.find('.payment-modes-body');
 		this.$stock_ageing = this.page.main.find('.stock-ageing-body');
 
-		// Toggle sections
-		this.page.main.on('click', '.toggle-btn', function() {
+		// Toggle all sections via header click
+		this.page.main.on('click', '.section-header', function(e) {
+			if ($(e.target).hasClass('close-ai-btn')) return;
 			const target = $(this).data('target');
-			$('.' + target).slideToggle(200);
-			$(this).text($('.' + target).is(':visible') ? '▼' : '▶');
+			if (!target) return;
+			const $body = $(this).siblings('.section-body, .ai-analysis-body');
+			const $chevron = $(this).find('.toggle-chevron');
+			$body.slideToggle(200);
+			$chevron.toggleClass('collapsed');
 		});
 
 		// Close AI
@@ -508,9 +325,13 @@ class FinancialAuditDashboard {
 
 	// ─── Charts ────────────────────────────────────────────
 	render_monthly_chart() {
-		const trends = this.data.monthly_trends || [];
-		if (!trends.length) { this.$monthly_chart.html(this.empty_msg()); this.$monthly_stats.empty(); return; }
+		if (!this.data.monthly_trends || !this.data.monthly_trends.length) {
+			this.$monthly_chart.html(this.empty_msg());
+			this.$monthly_stats.empty();
+			return;
+		}
 
+		const trends = this.data.monthly_trends;
 		this.$monthly_chart.empty();
 		const labels = trends.map(t => `${this.months_ar[t.mn]} ${t.yr}`);
 		const total_revenue = trends.reduce((s, t) => s + (t.revenue || 0), 0);
@@ -519,7 +340,7 @@ class FinancialAuditDashboard {
 		const best_month = trends.reduce((best, t) => (t.revenue || 0) > (best.revenue || 0) ? t : best, trends[0]);
 
 		this.charts.monthly = new frappe.Chart(this.$monthly_chart[0], {
-			type: 'bar', height: 340,
+			type: 'bar', height: 320,
 			colors: ['#10b981', '#ef4444'],
 			data: {
 				labels: labels,
@@ -542,9 +363,13 @@ class FinancialAuditDashboard {
 	}
 
 	render_daily_sales_chart() {
-		const sales = this.data.daily_sales || [];
-		if (!sales.length) { this.$daily_chart.html(this.empty_msg()); this.$daily_stats.empty(); return; }
+		if (!this.data.daily_sales || !this.data.daily_sales.length) {
+			this.$daily_chart.html(this.empty_msg());
+			this.$daily_stats.empty();
+			return;
+		}
 
+		const sales = this.data.daily_sales;
 		this.$daily_chart.empty();
 		const total_sales = sales.reduce((s, d) => s + (d.total_sales || 0), 0);
 		const avg_daily = total_sales / sales.length;
@@ -552,7 +377,7 @@ class FinancialAuditDashboard {
 		const total_invoices = sales.reduce((s, d) => s + (d.invoice_count || 0), 0);
 
 		this.charts.daily = new frappe.Chart(this.$daily_chart[0], {
-			type: 'line', height: 300,
+			type: 'line', height: 280,
 			colors: ['#8b5cf6'],
 			data: {
 				labels: sales.map(s => frappe.datetime.str_to_user(s.date)),
@@ -590,9 +415,13 @@ class FinancialAuditDashboard {
 	}
 
 	render_cash_flow_chart() {
-		const cf = this.data.cash_flow || [];
-		if (!cf.length) { this.$cash_flow.html(this.empty_msg()); this.$cash_flow_stats.empty(); return; }
+		if (!this.data.cash_flow || !this.data.cash_flow.length) {
+			this.$cash_flow.html(this.empty_msg());
+			this.$cash_flow_stats.empty();
+			return;
+		}
 
+		const cf = this.data.cash_flow;
 		this.$cash_flow.empty();
 		const labels = cf.map(c => `${this.months_ar[c.mn]} ${c.yr}`);
 		const total_received = cf.reduce((s, c) => s + (c.received || 0), 0);
@@ -600,7 +429,7 @@ class FinancialAuditDashboard {
 		const net_flow = total_received - total_paid;
 
 		this.charts.cash_flow = new frappe.Chart(this.$cash_flow[0], {
-			type: 'bar', height: 340,
+			type: 'bar', height: 320,
 			colors: ['#14b8a6', '#f97316'],
 			data: {
 				labels: labels,
@@ -698,17 +527,13 @@ class FinancialAuditDashboard {
 		const data = this.data.top_products || [];
 		if (!data.length) { this.$top_products.html(this.empty_msg()); return; }
 
-		const max_revenue = Math.max(...data.map(p => p.total_revenue || 0));
-		const rows = data.map((p, i) => {
-			const pct = max_revenue ? ((p.total_revenue / max_revenue) * 100) : 0;
-			return `<tr>
-				<td>${i + 1}</td>
-				<td><a href="/app/item/${p.item_code}">${p.item_name}</a></td>
-				<td>${format_number(p.total_qty, null, 2)}</td>
-				<td class="currency">${this.fc(p.total_revenue)}</td>
-				<td><span class="section-count">${p.invoice_count}</span></td>
-			</tr>`;
-		}).join('');
+		const rows = data.map((p, i) => `<tr>
+			<td>${i + 1}</td>
+			<td><a href="/app/item/${p.item_code}">${p.item_name}</a></td>
+			<td>${format_number(p.total_qty, null, 2)}</td>
+			<td class="currency">${this.fc(p.total_revenue)}</td>
+			<td><span class="section-count">${p.invoice_count}</span></td>
+		</tr>`).join('');
 
 		this.$top_products.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>المنتج</th><th>الكمية</th><th>الإيرادات</th><th>الفواتير</th>
@@ -1125,35 +950,36 @@ ${installed_apps}
 	show_ai_results(text) {
 		const k = this.data.kpis;
 
-		// Build KPI summary cards for AI section
+		// Health score calculation
 		const health_score = k.net_margin > 15 ? 85 : (k.net_margin > 5 ? 65 : (k.net_margin > 0 ? 45 : 25));
-		const health_color = health_score >= 70 ? '#10b981' : (health_score >= 50 ? '#f59e0b' : '#ef4444');
+		const health_color = health_score >= 70 ? '#059669' : (health_score >= 50 ? '#d97706' : '#dc2626');
 		const health_label = health_score >= 70 ? 'جيد' : (health_score >= 50 ? 'متوسط' : 'ضعيف');
+		const collection_pct = k.revenue > 0 ? ((1 - k.ar_outstanding / k.revenue) * 100).toFixed(0) : 100;
 
-		// Top 5 customers summary
+		// Top 5 customers
 		const top5 = (this.data.top_customers || []).slice(0, 5);
 		const top5_html = top5.map((c, i) => `<tr>
-			<td style="color:rgba(255,255,255,0.7)">${i+1}</td>
+			<td class="num">${i + 1}</td>
 			<td>${c.customer_name}</td>
-			<td style="direction:ltr;text-align:left">${this.fc(c.total_revenue)}</td>
-			<td style="color:${(c.collection_rate||0) >= 70 ? '#34d399' : '#fbbf24'}">${c.collection_rate||0}%</td>
+			<td class="currency-val">${this.fc(c.total_revenue)}</td>
+			<td style="color:${(c.collection_rate || 0) >= 70 ? '#059669' : '#d97706'};font-weight:700">${c.collection_rate || 0}%</td>
 		</tr>`).join('');
 
 		// Top 5 expenses
 		const top5_exp = (this.data.expense_breakdown || []).slice(0, 5);
 		const top5_exp_html = top5_exp.map((e, i) => `<tr>
-			<td style="color:rgba(255,255,255,0.7)">${i+1}</td>
+			<td class="num">${i + 1}</td>
 			<td>${e.category_name}</td>
-			<td style="direction:ltr;text-align:left">${this.fc(e.amount)}</td>
+			<td class="currency-val">${this.fc(e.amount)}</td>
 		</tr>`).join('');
 
-		// Monthly trend mini data
+		// Monthly trend
 		const trends = this.data.monthly_trends || [];
 		const trend_html = trends.map(t => `<tr>
 			<td>${this.months_ar[t.mn]} ${t.yr}</td>
-			<td style="color:#34d399;direction:ltr;text-align:left">${this.fc(t.revenue)}</td>
-			<td style="color:#f87171;direction:ltr;text-align:left">${this.fc(t.expenses)}</td>
-			<td style="color:${(t.revenue - t.expenses) >= 0 ? '#34d399' : '#f87171'};direction:ltr;text-align:left">${this.fc(t.revenue - t.expenses)}</td>
+			<td class="currency-val" style="color:#059669">${this.fc(t.revenue)}</td>
+			<td class="currency-val" style="color:#dc2626">${this.fc(t.expenses)}</td>
+			<td class="currency-val" style="color:${(t.revenue - t.expenses) >= 0 ? '#059669' : '#dc2626'}">${this.fc(t.revenue - t.expenses)}</td>
 		</tr>`).join('');
 
 		// Convert AI text to HTML
@@ -1174,88 +1000,76 @@ ${installed_apps}
 		this.$ai_body.html(`
 			<div class="ai-report" dir="rtl">
 				<div class="ai-report-header">
-					<i class="fa fa-magic"></i>
+					<i class="fa fa-magic" style="color:#4361ee"></i>
 					<span>تقرير التحليل الذكي - ${this.data.company}</span>
 					<span class="ai-date">${this.data.from_date} إلى ${this.data.to_date}</span>
 				</div>
 
-				<!-- AI Dashboard Summary Cards -->
-				<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
-					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
-						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">تقييم الصحة المالية</div>
-						<div style="font-size:2.2em;font-weight:800;color:${health_color}">${health_score}</div>
-						<div style="font-size:0.8em;color:${health_color};font-weight:600">${health_label}</div>
+				<!-- Summary Cards -->
+				<div class="ai-summary-grid">
+					<div class="ai-summary-card">
+						<div class="label">تقييم الصحة المالية</div>
+						<div class="value" style="color:${health_color}">${health_score}</div>
+						<div class="sub" style="color:${health_color}">${health_label}</div>
 					</div>
-					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
-						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">صافي الربح</div>
-						<div style="font-size:1.4em;font-weight:700;color:${k.net_profit >= 0 ? '#34d399' : '#f87171'};direction:ltr">${this.fc(k.net_profit)}</div>
-						<div style="font-size:0.8em;opacity:0.8">هامش ${k.net_margin.toFixed(1)}%</div>
+					<div class="ai-summary-card">
+						<div class="label">صافي الربح</div>
+						<div class="value" style="color:${k.net_profit >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.net_profit)}</div>
+						<div class="sub" style="color:var(--fa-text-muted)">هامش ${k.net_margin.toFixed(1)}%</div>
 					</div>
-					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
-						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">السيولة النقدية</div>
-						<div style="font-size:1.4em;font-weight:700;color:${k.cash_balance >= 0 ? '#34d399' : '#f87171'};direction:ltr">${this.fc(k.cash_balance)}</div>
-						<div style="font-size:0.8em;opacity:0.8">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
+					<div class="ai-summary-card">
+						<div class="label">السيولة النقدية</div>
+						<div class="value" style="color:${k.cash_balance >= 0 ? '#059669' : '#dc2626'}">${this.fc(k.cash_balance)}</div>
+						<div class="sub" style="color:var(--fa-text-muted)">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
 					</div>
-					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
-						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">نسبة التحصيل الإجمالية</div>
-						<div style="font-size:1.4em;font-weight:700;direction:ltr">${k.revenue > 0 ? ((1 - k.ar_outstanding/k.revenue)*100).toFixed(0) : 100}%</div>
-						<div style="font-size:0.8em;opacity:0.8">ذمم مدينة: ${this.fc(k.ar_outstanding)}</div>
+					<div class="ai-summary-card">
+						<div class="label">نسبة التحصيل</div>
+						<div class="value" style="color:${collection_pct >= 70 ? '#059669' : '#d97706'}">${collection_pct}%</div>
+						<div class="sub" style="color:var(--fa-text-muted)">ذمم: ${this.fc(k.ar_outstanding)}</div>
 					</div>
 				</div>
 
 				<!-- Monthly Trend Table -->
 				${trends.length ? `
 				<div style="margin-bottom:24px">
-					<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
-						<i class="fa fa-bar-chart" style="margin-left:8px"></i> الأداء الشهري
-					</h3>
-					<table style="width:100%;border-collapse:collapse;font-size:0.88em">
-						<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
-							<th style="padding:8px 12px;text-align:right;opacity:0.8">الشهر</th>
-							<th style="padding:8px 12px;text-align:left;opacity:0.8">الإيرادات</th>
-							<th style="padding:8px 12px;text-align:left;opacity:0.8">المصروفات</th>
-							<th style="padding:8px 12px;text-align:left;opacity:0.8">صافي</th>
+					<div class="ai-section-title">
+						<i class="fa fa-bar-chart"></i> الأداء الشهري
+					</div>
+					<table class="ai-data-table">
+						<thead><tr>
+							<th>الشهر</th><th style="text-align:left">الإيرادات</th><th style="text-align:left">المصروفات</th><th style="text-align:left">صافي</th>
 						</tr></thead>
 						<tbody>${trend_html}</tbody>
 					</table>
 				</div>` : ''}
 
-				<!-- Top Customers + Top Expenses side by side -->
-				<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+				<!-- Top Customers + Top Expenses -->
+				<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
 					${top5.length ? `<div>
-						<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
-							<i class="fa fa-users" style="margin-left:8px"></i> أعلى 5 عملاء
-						</h3>
-						<table style="width:100%;border-collapse:collapse;font-size:0.85em">
-							<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
-								<th style="padding:6px 8px;text-align:right;opacity:0.7">#</th>
-								<th style="padding:6px 8px;text-align:right;opacity:0.7">العميل</th>
-								<th style="padding:6px 8px;text-align:left;opacity:0.7">الإيرادات</th>
-								<th style="padding:6px 8px;text-align:left;opacity:0.7">التحصيل</th>
-							</tr></thead>
+						<div class="ai-section-title">
+							<i class="fa fa-users"></i> أعلى 5 عملاء
+						</div>
+						<table class="ai-data-table">
+							<thead><tr><th>#</th><th>العميل</th><th style="text-align:left">الإيرادات</th><th style="text-align:left">التحصيل</th></tr></thead>
 							<tbody>${top5_html}</tbody>
 						</table>
 					</div>` : '<div></div>'}
 					${top5_exp.length ? `<div>
-						<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
-							<i class="fa fa-pie-chart" style="margin-left:8px"></i> أعلى 5 مصروفات
-						</h3>
-						<table style="width:100%;border-collapse:collapse;font-size:0.85em">
-							<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
-								<th style="padding:6px 8px;text-align:right;opacity:0.7">#</th>
-								<th style="padding:6px 8px;text-align:right;opacity:0.7">البند</th>
-								<th style="padding:6px 8px;text-align:left;opacity:0.7">المبلغ</th>
-							</tr></thead>
+						<div class="ai-section-title">
+							<i class="fa fa-pie-chart"></i> أعلى 5 مصروفات
+						</div>
+						<table class="ai-data-table">
+							<thead><tr><th>#</th><th>البند</th><th style="text-align:left">المبلغ</th></tr></thead>
 							<tbody>${top5_exp_html}</tbody>
 						</table>
 					</div>` : '<div></div>'}
 				</div>
 
 				<!-- AI Analysis Text -->
-				<div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:24px;margin-top:8px">
-					<h3 style="color:white;margin:0 0 16px;font-size:1.2em">
-						<i class="fa fa-lightbulb-o" style="margin-left:8px;color:#fbbf24"></i> التحليل والتوصيات
-					</h3>
+				<div style="border-top:2px solid var(--fa-border);padding-top:24px;margin-top:8px">
+					<div class="ai-section-title">
+						<i class="fa fa-lightbulb-o" style="color:#f59e0b"></i> التحليل والتوصيات
+					</div>
 					<div class="ai-report-content"><p>${ai_html}</p></div>
 				</div>
 			</div>
