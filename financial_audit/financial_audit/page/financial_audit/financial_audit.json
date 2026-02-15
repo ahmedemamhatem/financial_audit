@@ -1,0 +1,25 @@
+{
+ "content": null,
+ "creation": "2026-02-15 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-02-15 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Financial Audit",
+ "name": "financial-audit",
+ "owner": "Administrator",
+ "page_name": "financial-audit",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Accounts Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "\u0644\u0648\u062d\u0629 \u0627\u0644\u062a\u062f\u0642\u064a\u0642 \u0627\u0644\u0645\u0627\u0644\u064a"
+}

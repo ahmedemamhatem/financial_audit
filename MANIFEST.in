@@ -1,0 +1,17 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include financial_audit *.css
+recursive-include financial_audit *.csv
+recursive-include financial_audit *.html
+recursive-include financial_audit *.ico
+recursive-include financial_audit *.js
+recursive-include financial_audit *.json
+recursive-include financial_audit *.md
+recursive-include financial_audit *.png
+recursive-include financial_audit *.py
+recursive-include financial_audit *.svg
+recursive-include financial_audit *.txt
