@@ -191,6 +191,33 @@ class FinancialAuditDashboard {
 					'تقادم المخزون (مخزون راكد)', 'stock-ageing-body',
 					'الأصناف التي مضى على تخزينها فترة طويلة لتحديد المخزون الراكد')}
 
+				<!-- ═══ ADVANCED AUDIT ANALYTICS ═══ -->
+				<div class="audit-divider"><span><i class="fa fa-shield"></i> تحليلات التدقيق المتقدمة</span></div>
+
+				${this.make_section('data-section', 'fa-line-chart', '#ecfdf5', '#047857',
+					'النسب المالية المتقدمة (DuPont / DSO / CCC)', 'working-capital-body',
+					'تحليل DuPont لعائد حقوق الملكية، دورة التحويل النقدي، ونسب السيولة المتقدمة')}
+
+				${this.make_section('data-section', 'fa-calendar-check-o', '#eef1ff', '#4361ee',
+					'مقارنة سنوية (YoY Growth)', 'yoy-growth-body',
+					'مقارنة أداء الفترة الحالية بنفس الفترة من العام السابق لقياس النمو')}
+
+				${this.make_chart_section('fa-bar-chart-o', '#fdf2f8', '#ec4899',
+					'تحليل قانون بنفورد (كشف الاحتيال)', 'benford-chart', '',
+					'تحليل توزيع الرقم الأول في مبالغ الفواتير — الانحراف عن قانون بنفورد يشير لاحتمال تلاعب')}
+
+				${this.make_section('data-section', 'fa-copy', '#fef2f2', '#b91c1c',
+					'كشف المدفوعات المكررة', 'duplicate-payments-body',
+					'اكتشاف مدفوعات بنفس المبلغ لنفس المورد خلال 7 أيام — مؤشر احتيال محتمل')}
+
+				${this.make_section('data-section', 'fa-bullseye', '#fffbeb', '#b45309',
+					'تحليل تركز العملاء والموردين', 'concentration-body',
+					'قياس الاعتماد على عدد محدود من العملاء أو الموردين — خطر التركز العالي')}
+
+				${this.make_section('data-section', 'fa-calendar-times-o', '#f5f3ff', '#6d28d9',
+					'معاملات نهاية الشهر وعطلات نهاية الأسبوع', 'weekend-txn-body',
+					'كشف المعاملات في أوقات غير اعتيادية — مؤشر تلاعب أو ضعف رقابة')}
+
 			</div>
 		`);
 
@@ -224,6 +251,13 @@ class FinancialAuditDashboard {
 		this.$journal_entries = this.page.main.find('.journal-entries-body');
 		this.$payment_modes = this.page.main.find('.payment-modes-body');
 		this.$stock_ageing = this.page.main.find('.stock-ageing-body');
+		// Advanced audit sections
+		this.$working_capital = this.page.main.find('.working-capital-body');
+		this.$yoy_growth = this.page.main.find('.yoy-growth-body');
+		this.$benford_chart = this.page.main.find('.benford-chart-chart');
+		this.$duplicate_payments = this.page.main.find('.duplicate-payments-body');
+		this.$concentration = this.page.main.find('.concentration-body');
+		this.$weekend_txn = this.page.main.find('.weekend-txn-body');
 
 		// Toggle all sections via header click (including AI)
 		this.page.main.on('click', '.section-header', function(e) {
@@ -334,6 +368,13 @@ class FinancialAuditDashboard {
 		this.render_inventory_table();
 		this.render_stock_movement();
 		this.render_stock_ageing();
+		// Advanced audit analytics
+		this.render_working_capital();
+		this.render_yoy_growth();
+		this.render_benford_chart();
+		this.render_duplicate_payments();
+		this.render_concentration_risk();
+		this.render_weekend_transactions();
 	}
 
 	// ─── ECharts Helper ─────────────────────────────────────
@@ -996,6 +1037,317 @@ class FinancialAuditDashboard {
 		</tr></thead><tbody>${rows}</tbody></table>`);
 	}
 
+	// ═══ ADVANCED AUDIT ANALYTICS ═══════════════════════════
+
+	render_working_capital() {
+		const wc = this.data.working_capital_metrics;
+		if (!wc) { this.$working_capital.html(this.empty_msg()); return; }
+
+		const ratio_color = (val, good, warn) => val >= good ? '#047857' : (val >= warn ? '#b45309' : '#b91c1c');
+
+		this.$working_capital.html(`
+			<div style="padding:20px">
+				<div class="audit-metrics-grid">
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#ecfdf5;color:#047857"><i class="fa fa-clock-o"></i></div>
+						<div class="metric-label">DSO (أيام التحصيل)</div>
+						<div class="metric-value" style="color:${ratio_color(90-wc.dso, 45, 0)}">${wc.dso} <small>يوم</small></div>
+						<div class="metric-sub">${wc.dso < 30 ? 'ممتاز' : wc.dso < 45 ? 'جيد' : wc.dso < 60 ? 'مقبول' : 'بطيء'}</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#fffbeb;color:#b45309"><i class="fa fa-truck"></i></div>
+						<div class="metric-label">DPO (أيام السداد)</div>
+						<div class="metric-value" style="color:var(--fa-text-mid)">${wc.dpo} <small>يوم</small></div>
+						<div class="metric-sub">${wc.dpo > 45 ? 'بطيء' : 'طبيعي'}</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#fff7ed;color:#f97316"><i class="fa fa-cubes"></i></div>
+						<div class="metric-label">DIO (أيام المخزون)</div>
+						<div class="metric-value" style="color:${ratio_color(90-wc.dio, 30, 0)}">${wc.dio} <small>يوم</small></div>
+						<div class="metric-sub">${wc.dio < 30 ? 'سريع' : wc.dio < 60 ? 'طبيعي' : 'بطيء'}</div>
+					</div>
+					<div class="metric-card highlight">
+						<div class="metric-icon" style="background:#eef1ff;color:#4361ee"><i class="fa fa-refresh"></i></div>
+						<div class="metric-label">CCC (دورة التحويل النقدي)</div>
+						<div class="metric-value" style="color:${ratio_color(60-wc.ccc, 0, -30)}">${wc.ccc} <small>يوم</small></div>
+						<div class="metric-sub">DSO + DIO - DPO</div>
+					</div>
+				</div>
+				<div class="audit-metrics-grid" style="margin-top:14px">
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#f0fdfa;color:#14b8a6"><i class="fa fa-tachometer"></i></div>
+						<div class="metric-label">نسبة التداول</div>
+						<div class="metric-value" style="color:${ratio_color(wc.current_ratio, 1.5, 1)}">${wc.current_ratio}</div>
+						<div class="metric-sub">${wc.current_ratio >= 1.5 ? 'صحي' : wc.current_ratio >= 1 ? 'مقبول' : 'خطر'}</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#fdf2f8;color:#ec4899"><i class="fa fa-bolt"></i></div>
+						<div class="metric-label">نسبة السيولة السريعة</div>
+						<div class="metric-value" style="color:${ratio_color(wc.quick_ratio, 1, 0.5)}">${wc.quick_ratio}</div>
+						<div class="metric-sub">${wc.quick_ratio >= 1 ? 'صحي' : wc.quick_ratio >= 0.5 ? 'مقبول' : 'خطر'}</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#ecfdf5;color:#047857"><i class="fa fa-money"></i></div>
+						<div class="metric-label">نسبة النقد</div>
+						<div class="metric-value" style="color:${ratio_color(wc.cash_ratio, 0.5, 0.2)}">${wc.cash_ratio}</div>
+						<div class="metric-sub">${wc.cash_ratio >= 0.5 ? 'قوي' : wc.cash_ratio >= 0.2 ? 'مقبول' : 'ضعيف'}</div>
+					</div>
+					<div class="metric-card">
+						<div class="metric-icon" style="background:#f5f3ff;color:#6d28d9"><i class="fa fa-line-chart"></i></div>
+						<div class="metric-label">العائد على حقوق الملكية (ROE)</div>
+						<div class="metric-value" style="color:${ratio_color(wc.roe, 15, 5)}">${wc.roe}%</div>
+						<div class="metric-sub">${wc.roe >= 15 ? 'ممتاز' : wc.roe >= 5 ? 'جيد' : 'ضعيف'}</div>
+					</div>
+				</div>
+				<div style="margin-top:16px;padding:14px 18px;background:#f8fafc;border-radius:8px;border:1px solid var(--fa-border)">
+					<div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--fa-text)"><i class="fa fa-sitemap" style="margin-left:6px;color:var(--fa-primary-light)"></i> تحليل DuPont</div>
+					<div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:700;direction:ltr">
+						<span style="color:${ratio_color(wc.roe, 15, 5)}">ROE ${wc.roe}%</span>
+						<span style="color:var(--fa-text-muted)">=</span>
+						<span style="padding:4px 10px;background:#ecfdf5;border-radius:6px;color:#047857">هامش ${wc.profit_margin}%</span>
+						<span style="color:var(--fa-text-muted)">×</span>
+						<span style="padding:4px 10px;background:#eef1ff;border-radius:6px;color:#4361ee">دوران ${wc.asset_turnover}</span>
+						<span style="color:var(--fa-text-muted)">×</span>
+						<span style="padding:4px 10px;background:#f5f3ff;border-radius:6px;color:#6d28d9">رافعة ${wc.equity_multiplier}</span>
+					</div>
+				</div>
+			</div>
+		`);
+	}
+
+	render_yoy_growth() {
+		const yoy = this.data.yoy_growth;
+		if (!yoy) { this.$yoy_growth.html(this.empty_msg()); return; }
+
+		const arrow = (val) => val >= 0
+			? `<span style="color:#047857"><i class="fa fa-arrow-up"></i> ${val.toFixed(1)}%</span>`
+			: `<span style="color:#b91c1c"><i class="fa fa-arrow-down"></i> ${Math.abs(val).toFixed(1)}%</span>`;
+
+		this.$yoy_growth.html(`<table class="audit-table"><thead><tr>
+			<th>المؤشر</th><th>الفترة الحالية</th><th>الفترة السابقة</th><th>النمو</th>
+		</tr></thead><tbody>
+			<tr>
+				<td><i class="fa fa-money" style="margin-left:6px;color:#047857"></i> الإيرادات</td>
+				<td class="currency">${this.fc(yoy.current_revenue)}</td>
+				<td class="currency">${this.fc(yoy.prior_revenue)}</td>
+				<td>${arrow(yoy.revenue_growth)}</td>
+			</tr>
+			<tr>
+				<td><i class="fa fa-line-chart" style="margin-left:6px;color:#4361ee"></i> مجمل الربح</td>
+				<td class="currency">${this.fc(yoy.current_gross)}</td>
+				<td class="currency">${this.fc(yoy.prior_gross)}</td>
+				<td>${arrow(yoy.gross_growth)}</td>
+			</tr>
+			<tr>
+				<td><i class="fa fa-arrow-circle-down" style="margin-left:6px;color:#ef4444"></i> المصروفات</td>
+				<td class="currency">${this.fc(yoy.current_expenses)}</td>
+				<td class="currency">${this.fc(yoy.prior_expenses)}</td>
+				<td>${arrow(yoy.expense_growth)}</td>
+			</tr>
+			<tr style="font-weight:800;border-top:2px solid var(--fa-border)">
+				<td><i class="fa fa-trophy" style="margin-left:6px;color:#b45309"></i> صافي الربح</td>
+				<td class="currency ${yoy.current_net >= 0 ? 'positive' : 'negative'}">${this.fc(yoy.current_net)}</td>
+				<td class="currency ${yoy.prior_net >= 0 ? 'positive' : 'negative'}">${this.fc(yoy.prior_net)}</td>
+				<td>${arrow(yoy.net_growth)}</td>
+			</tr>
+			<tr>
+				<td><i class="fa fa-file-text-o" style="margin-left:6px;color:#8b5cf6"></i> عدد الفواتير</td>
+				<td class="currency">${yoy.current_invoices}</td>
+				<td class="currency">${yoy.prior_invoices}</td>
+				<td>${arrow(yoy.invoice_growth)}</td>
+			</tr>
+		</tbody></table>`);
+	}
+
+	render_benford_chart() {
+		const bf = this.data.benfords_law;
+		if (!bf || !bf.sales || !bf.sales.data) { this.$benford_chart.html(this.empty_msg()); return; }
+		this.$benford_chart.empty();
+
+		const si = bf.sales;
+		const pi = bf.purchases;
+		const digits = si.data.map(d => d.digit.toString());
+
+		this.init_echart(this.$benford_chart[0], {
+			tooltip: {
+				trigger: 'axis',
+				formatter: (params) => {
+					let html = `<div style="font-weight:700;margin-bottom:4px">الرقم ${params[0].name}</div>`;
+					params.forEach(p => {
+						html += `<div>${p.marker} ${p.seriesName}: <strong>${p.value}%</strong></div>`;
+					});
+					return html;
+				}
+			},
+			legend: {
+				data: ['التوزيع المتوقع (بنفورد)', 'فواتير المبيعات', 'فواتير المشتريات'],
+				bottom: 0,
+				textStyle: { fontFamily: 'Cairo', fontSize: 11 }
+			},
+			grid: { top: 30, right: 16, bottom: 50, left: 16, containLabel: true },
+			xAxis: {
+				type: 'category', data: digits,
+				axisLabel: { fontSize: 13, fontWeight: 'bold' },
+				name: 'الرقم الأول', nameLocation: 'middle', nameGap: 30,
+				nameTextStyle: { fontFamily: 'Cairo', fontSize: 12 }
+			},
+			yAxis: {
+				type: 'value',
+				axisLabel: { fontSize: 11, formatter: '{value}%' },
+				name: 'النسبة %', nameTextStyle: { fontFamily: 'Cairo', fontSize: 12 }
+			},
+			series: [
+				{
+					name: 'التوزيع المتوقع (بنفورد)', type: 'line',
+					data: si.data.map(d => d.expected_pct),
+					lineStyle: { width: 3, color: '#64748b', type: 'dashed' },
+					itemStyle: { color: '#64748b' }, symbol: 'diamond', symbolSize: 8
+				},
+				{
+					name: 'فواتير المبيعات', type: 'bar',
+					data: si.data.map(d => d.observed_pct),
+					itemStyle: { color: si.conforms ? '#10b981' : '#ef4444', borderRadius: [4,4,0,0] },
+					barMaxWidth: 28
+				},
+				{
+					name: 'فواتير المشتريات', type: 'bar',
+					data: pi.data.map(d => d.observed_pct),
+					itemStyle: { color: pi.conforms ? '#3b82f6' : '#f97316', borderRadius: [4,4,0,0] },
+					barMaxWidth: 28
+				}
+			]
+		});
+
+		// Add stats below chart
+		const $parent = this.$benford_chart.closest('.section-body');
+		$parent.find('.benford-stats').remove();
+		$parent.append(`<div class="benford-stats" style="padding:12px 20px;border-top:1px solid var(--fa-border);display:flex;gap:24px;justify-content:center;flex-wrap:wrap">
+			<div style="text-align:center">
+				<div style="font-size:11px;font-weight:800;color:var(--fa-text-muted);text-transform:uppercase">مبيعات χ²</div>
+				<div style="font-size:16px;font-weight:900;color:${si.conforms ? '#047857' : '#b91c1c'}">${si.chi_square}</div>
+				<div style="font-size:10px;color:var(--fa-text-muted)">${si.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}</div>
+			</div>
+			<div style="text-align:center">
+				<div style="font-size:11px;font-weight:800;color:var(--fa-text-muted);text-transform:uppercase">مشتريات χ²</div>
+				<div style="font-size:16px;font-weight:900;color:${pi.conforms ? '#047857' : '#b91c1c'}">${pi.chi_square}</div>
+				<div style="font-size:10px;color:var(--fa-text-muted)">${pi.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}</div>
+			</div>
+			<div style="text-align:center">
+				<div style="font-size:11px;font-weight:800;color:var(--fa-text-muted);text-transform:uppercase">مستوى الخطر</div>
+				<div><span class="ai-risk-badge ${si.risk === 'low' && pi.risk === 'low' ? 'low' : (si.risk === 'high' || pi.risk === 'high' ? 'high' : 'medium')}">${
+					si.risk === 'low' && pi.risk === 'low' ? 'منخفض' : (si.risk === 'high' || pi.risk === 'high' ? 'مرتفع' : 'متوسط')
+				}</span></div>
+				<div style="font-size:10px;color:var(--fa-text-muted);margin-top:2px">حد القبول: χ² < 15.51</div>
+			</div>
+		</div>`);
+	}
+
+	render_duplicate_payments() {
+		const dp = this.data.duplicate_payments;
+		if (!dp || !dp.items || !dp.items.length) {
+			this.$duplicate_payments.html(`<div class="empty-state" style="padding:28px">
+				<div class="empty-icon" style="background:#ecfdf5;color:#047857"><i class="fa fa-check-circle"></i></div>
+				<p style="color:#047857;font-weight:700">لم يتم اكتشاف مدفوعات مكررة مشبوهة</p>
+			</div>`);
+			return;
+		}
+
+		const rows = dp.items.map((d, i) => `<tr>
+			<td>${i + 1}</td>
+			<td>${d.supplier}</td>
+			<td class="currency">${this.fc(d.amount)}</td>
+			<td><a href="/app/payment-entry/${d.payment1}">${d.payment1}</a></td>
+			<td><a href="/app/payment-entry/${d.payment2}">${d.payment2}</a></td>
+			<td>${d.days_apart} يوم</td>
+			<td><span class="ai-risk-badge high">مشبوه</span></td>
+		</tr>`).join('');
+
+		this.$duplicate_payments.html(`
+			<div style="padding:12px 20px;background:#fef2f2;border-bottom:1px solid var(--fa-border);display:flex;align-items:center;gap:12px">
+				<span class="ai-risk-badge ${dp.risk}">${dp.risk === 'high' ? 'خطر مرتفع' : dp.risk === 'medium' ? 'خطر متوسط' : 'خطر منخفض'}</span>
+				<span style="font-weight:700;font-size:13px">${dp.count} مدفوعات مشبوهة — إجمالي المبلغ المعرض للخطر: ${this.fc(dp.total_risk_amount)}</span>
+			</div>
+			<table class="audit-table"><thead><tr>
+				<th>#</th><th>المورد</th><th>المبلغ</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الفارق</th><th>الحالة</th>
+			</tr></thead><tbody>${rows}</tbody></table>
+		`);
+	}
+
+	render_concentration_risk() {
+		const cr = this.data.concentration_risk;
+		if (!cr) { this.$concentration.html(this.empty_msg()); return; }
+
+		const risk_badge = (level) => `<span class="ai-risk-badge ${level}">${level === 'high' ? 'مرتفع' : level === 'medium' ? 'متوسط' : 'منخفض'}</span>`;
+
+		const cust_rows = (cr.customers || []).map((c, i) => `<tr>
+			<td>${i + 1}</td>
+			<td>${c.customer_name}</td>
+			<td class="currency">${this.fc(c.revenue)}</td>
+			<td>
+				<div style="display:flex;align-items:center;gap:6px">
+					<div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+						<div style="width:${Math.min(c.pct, 100)}%;height:100%;background:${c.pct > 20 ? '#ef4444' : c.pct > 10 ? '#f59e0b' : '#10b981'};border-radius:4px"></div>
+					</div>
+					<span style="font-weight:800;font-size:12px;min-width:40px">${c.pct}%</span>
+				</div>
+			</td>
+		</tr>`).join('');
+
+		const supp_rows = (cr.suppliers || []).map((s, i) => `<tr>
+			<td>${i + 1}</td>
+			<td>${s.supplier_name}</td>
+			<td class="currency">${this.fc(s.purchases)}</td>
+			<td>
+				<div style="display:flex;align-items:center;gap:6px">
+					<div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+						<div style="width:${Math.min(s.pct, 100)}%;height:100%;background:${s.pct > 20 ? '#ef4444' : s.pct > 10 ? '#f59e0b' : '#10b981'};border-radius:4px"></div>
+					</div>
+					<span style="font-weight:800;font-size:12px;min-width:40px">${s.pct}%</span>
+				</div>
+			</td>
+		</tr>`).join('');
+
+		this.$concentration.html(`
+			<div style="padding:12px 20px;background:#f8fafc;border-bottom:1px solid var(--fa-border);display:flex;gap:24px;flex-wrap:wrap">
+				<div>تركز العملاء: أعلى عميل <strong>${cr.top1_cust_pct}%</strong> | أعلى 5 <strong>${cr.top5_cust_pct}%</strong> ${risk_badge(cr.cust_risk)}</div>
+				<div>تركز الموردين: أعلى مورد <strong>${cr.top1_supp_pct}%</strong> | أعلى 5 <strong>${cr.top5_supp_pct}%</strong> ${risk_badge(cr.supp_risk)}</div>
+			</div>
+			<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+				<div style="border-left:1px solid var(--fa-border)">
+					<div style="padding:10px 16px;font-weight:800;font-size:13px;border-bottom:1px solid var(--fa-border-light);color:var(--fa-text-mid)"><i class="fa fa-users" style="margin-left:6px"></i> تركز العملاء</div>
+					<table class="audit-table"><thead><tr><th>#</th><th>العميل</th><th>الإيرادات</th><th>النسبة</th></tr></thead><tbody>${cust_rows}</tbody></table>
+				</div>
+				<div>
+					<div style="padding:10px 16px;font-weight:800;font-size:13px;border-bottom:1px solid var(--fa-border-light);color:var(--fa-text-mid)"><i class="fa fa-truck" style="margin-left:6px"></i> تركز الموردين</div>
+					<table class="audit-table"><thead><tr><th>#</th><th>المورد</th><th>المشتريات</th><th>النسبة</th></tr></thead><tbody>${supp_rows}</tbody></table>
+				</div>
+			</div>
+		`);
+	}
+
+	render_weekend_transactions() {
+		const wt = this.data.weekend_transactions;
+		if (!wt || !wt.items || !wt.items.length) { this.$weekend_txn.html(this.empty_msg()); return; }
+
+		const rows = wt.items.map((t, i) => `<tr>
+			<td>${i + 1}</td>
+			<td><a href="/app/${frappe.router.slug(t.doctype)}">${t.doctype}</a></td>
+			<td><span class="section-count">${t.total_count}</span></td>
+			<td style="color:${t.weekend_pct > 10 ? '#b91c1c' : '#047857'};font-weight:800">${t.weekend_count} <small>(${t.weekend_pct}%)</small></td>
+			<td style="color:${t.eom_pct > 30 ? '#b45309' : '#047857'};font-weight:800">${t.eom_count} <small>(${t.eom_pct}%)</small></td>
+		</tr>`).join('');
+
+		this.$weekend_txn.html(`
+			<div style="padding:12px 20px;background:${wt.risk === 'low' ? '#ecfdf5' : '#fffbeb'};border-bottom:1px solid var(--fa-border);display:flex;align-items:center;gap:12px">
+				<span class="ai-risk-badge ${wt.risk}">${wt.risk === 'high' ? 'خطر مرتفع' : wt.risk === 'medium' ? 'انتباه' : 'طبيعي'}</span>
+				<span style="font-weight:700;font-size:13px">${wt.total_weekend} معاملة في عطلة نهاية الأسبوع | ${wt.total_eom} معاملة نهاية شهر</span>
+			</div>
+			<table class="audit-table"><thead><tr>
+				<th>#</th><th>نوع المستند</th><th>الإجمالي</th><th>عطلة نهاية الأسبوع</th><th>نهاية الشهر</th>
+			</tr></thead><tbody>${rows}</tbody></table>
+		`);
+	}
+
 	// ─── AI Analysis ───────────────────────────────────────
 	async run_ai_analysis() {
 		if (!this.data || !this.data.kpis) {
@@ -1086,7 +1438,47 @@ class FinancialAuditDashboard {
 			`${a.app}: ${a.version || 'N/A'}`
 		).join('\n');
 
-		return `أنت محلل مالي ومدقق حسابات خبير. حلل البيانات المالية التالية لشركة "${this.data.company}" للفترة من ${this.data.from_date} إلى ${this.data.to_date} وقدم تقريراً شاملاً باللغة العربية.
+		// Advanced audit analytics data
+		const wc = this.data.working_capital_metrics;
+		const wc_text = wc ? `- DSO (أيام التحصيل): ${wc.dso} يوم
+- DPO (أيام السداد): ${wc.dpo} يوم
+- DIO (أيام المخزون): ${wc.dio} يوم
+- CCC (دورة التحويل النقدي): ${wc.ccc} يوم
+- نسبة التداول: ${wc.current_ratio}
+- نسبة السيولة السريعة: ${wc.quick_ratio}
+- نسبة النقد: ${wc.cash_ratio}
+- العائد على حقوق الملكية (ROE): ${wc.roe}%
+- تحليل DuPont: هامش ${wc.profit_margin}% × دوران الأصول ${wc.asset_turnover} × الرافعة المالية ${wc.equity_multiplier}
+- رأس المال العامل: ${wc.working_capital?.toLocaleString()}` : 'لا تتوفر بيانات';
+
+		const yoy = this.data.yoy_growth;
+		const yoy_text = yoy ? `- نمو الإيرادات: ${yoy.revenue_growth}% (الحالي: ${yoy.current_revenue?.toLocaleString()} / السابق: ${yoy.prior_revenue?.toLocaleString()})
+- نمو مجمل الربح: ${yoy.gross_growth}%
+- نمو المصروفات: ${yoy.expense_growth}%
+- نمو صافي الربح: ${yoy.net_growth}% (الحالي: ${yoy.current_net?.toLocaleString()} / السابق: ${yoy.prior_net?.toLocaleString()})
+- نمو عدد الفواتير: ${yoy.invoice_growth}%` : 'لا تتوفر بيانات';
+
+		const bf = this.data.benfords_law;
+		const bf_text = bf ? `- فواتير المبيعات: χ² = ${bf.sales?.chi_square} (${bf.sales?.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}) — مستوى الخطر: ${bf.sales?.risk}
+- فواتير المشتريات: χ² = ${bf.purchases?.chi_square} (${bf.purchases?.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}) — مستوى الخطر: ${bf.purchases?.risk}` : 'لا تتوفر بيانات';
+
+		const dp = this.data.duplicate_payments;
+		const dp_text = dp ? `- عدد المدفوعات المكررة المشبوهة: ${dp.count}
+- إجمالي المبلغ المعرض للخطر: ${dp.total_risk_amount?.toLocaleString()}
+- مستوى الخطر: ${dp.risk}` : 'لا تتوفر بيانات';
+
+		const cr = this.data.concentration_risk;
+		const cr_text = cr ? `- أعلى عميل يمثل: ${cr.top1_cust_pct}% من الإيرادات (خطر: ${cr.cust_risk})
+- أعلى 5 عملاء يمثلون: ${cr.top5_cust_pct}%
+- أعلى مورد يمثل: ${cr.top1_supp_pct}% من المشتريات (خطر: ${cr.supp_risk})
+- أعلى 5 موردين يمثلون: ${cr.top5_supp_pct}%` : 'لا تتوفر بيانات';
+
+		const wt = this.data.weekend_transactions;
+		const wt_text = wt ? `- إجمالي معاملات عطلة نهاية الأسبوع: ${wt.total_weekend}
+- إجمالي معاملات نهاية الشهر: ${wt.total_eom}
+- مستوى الخطر: ${wt.risk}` : 'لا تتوفر بيانات';
+
+		return `أنت محلل مالي ومدقق حسابات خبير بمعايير التدقيق الدولية (ISA). حلل البيانات المالية التالية لشركة "${this.data.company}" للفترة من ${this.data.from_date} إلى ${this.data.to_date} وقدم تقريراً تدقيقياً شاملاً باللغة العربية.
 
 ## المؤشرات المالية الرئيسية:
 - الإيرادات: ${k.revenue?.toLocaleString()} ${this.currency}
@@ -1103,6 +1495,24 @@ class FinancialAuditDashboard {
 
 ## ملخص الميزانية العمومية:
 ${balance_sheet}
+
+## النسب المالية المتقدمة (DuPont / CCC):
+${wc_text}
+
+## المقارنة السنوية (YoY):
+${yoy_text}
+
+## تحليل قانون بنفورد (كشف الاحتيال):
+${bf_text}
+
+## كشف المدفوعات المكررة:
+${dp_text}
+
+## تحليل تركز العملاء والموردين:
+${cr_text}
+
+## معاملات العطلات ونهاية الشهر:
+${wt_text}
 
 ## أنواع القيود المحاسبية:
 ${gl_vouchers}
@@ -1146,19 +1556,21 @@ ${custom_dt}
 ## التطبيقات المثبتة:
 ${installed_apps}
 
-## المطلوب:
-1. **تقييم الصحة المالية** (درجة من 100 مع تفسير)
-2. **تحليل المخاطر**: حدد أهم 5 مخاطر مالية
-3. **كشف الشذوذ**: أنماط غير طبيعية في البيانات
-4. **تحليل التدفق النقدي**: هل الشركة قادرة على تغطية التزاماتها؟
-5. **تحليل المخزون**: هل هناك مخزون راكد أو مشاكل في إدارة المخزون؟
-6. **تحليل المبيعات والمرتجعات**: نسبة المرتجعات وتأثيرها
-7. **نقاط القوة**: ما هي الإيجابيات؟
-8. **نقاط الضعف**: ما يجب معالجته؟
-9. **توصيات عملية**: 7-10 توصيات قابلة للتنفيذ لتحسين الأداء
-10. **تحليل التطبيقات المخصصة**: هل هناك مخاطر من التخصيصات؟
+## المطلوب — تقرير تدقيق شامل:
+1. **تقييم الصحة المالية** (درجة من 100 مع تفسير مفصل)
+2. **تحليل DuPont وعائد حقوق الملكية**: تفكيك ROE إلى مكوناته وتحليل نقاط القوة والضعف
+3. **تحليل دورة التحويل النقدي (CCC)**: تقييم DSO/DPO/DIO وتأثيرها على السيولة
+4. **تحليل المخاطر والاحتيال**: بناءً على نتائج قانون بنفورد، المدفوعات المكررة، ومعاملات العطلات
+5. **تحليل تركز العملاء والموردين**: مخاطر الاعتماد على عدد محدود
+6. **المقارنة السنوية**: تقييم اتجاهات النمو أو الانكماش
+7. **تحليل التدفق النقدي**: هل الشركة قادرة على تغطية التزاماتها؟
+8. **تحليل المخزون**: مخزون راكد، دوران بطيء، مشاكل إدارة
+9. **تحليل المرتجعات**: نسب المرتجعات وتأثيرها على الربحية
+10. **نقاط القوة والضعف**: تحليل SWOT مالي مختصر
+11. **توصيات عملية**: 10 توصيات قابلة للتنفيذ مرتبة حسب الأولوية
+12. **علامات الإنذار المبكر**: أي مؤشرات تدل على مشاكل مستقبلية
 
-قدم التقرير منظماً بعناوين واضحة باللغة العربية.`;
+قدم التقرير منظماً بعناوين واضحة ونقاط محددة باللغة العربية. استخدم أرقام ونسب محددة من البيانات المقدمة.`;
 	}
 
 	show_ai_results(text) {
@@ -1178,6 +1590,23 @@ ${installed_apps}
 		if (k.gross_margin > 30) score += 10; else if (k.gross_margin > 20) score += 7; else if (k.gross_margin > 10) score += 4; else score += 0;
 		// Revenue presence (-25 if zero)
 		if (k.revenue <= 0) score -= 25;
+		// Advanced audit adjustments
+		if (this.data.benfords_law) {
+			const bf_s = this.data.benfords_law.sales;
+			const bf_p = this.data.benfords_law.purchases;
+			if (bf_s?.risk === 'high' || bf_p?.risk === 'high') score -= 8;
+			else if (bf_s?.conforms && bf_p?.conforms) score += 3;
+		}
+		if (this.data.duplicate_payments?.count > 5) score -= 5;
+		if (this.data.working_capital_metrics) {
+			const wc_m = this.data.working_capital_metrics;
+			if (wc_m.current_ratio >= 1.5) score += 3;
+			else if (wc_m.current_ratio < 1) score -= 3;
+		}
+		if (this.data.yoy_growth) {
+			if (this.data.yoy_growth.revenue_growth > 10) score += 3;
+			else if (this.data.yoy_growth.revenue_growth < -10) score -= 5;
+		}
 
 		const health_score = Math.max(0, Math.min(100, score));
 		const health_color = health_score >= 75 ? '#047857' : (health_score >= 50 ? '#b45309' : '#b91c1c');
@@ -1191,14 +1620,34 @@ ${installed_apps}
 		const debt_to_equity_approx = k.ar_outstanding > 0 ? (k.ap_outstanding / (k.cash_balance + k.ar_outstanding + k.inventory_value)).toFixed(2) : '0';
 		const avg_invoice = k.si_count > 0 ? k.revenue / k.si_count : 0;
 
-		// Risk assessment
+		// Risk assessment — including advanced audit data
 		const risks = [];
 		if (collection_pct < 60) risks.push({ level: 'high', title: 'ضعف التحصيل', desc: `نسبة التحصيل ${collection_pct}% فقط — خطر تعثر السيولة` });
 		if (liquidity_ratio < 0.5) risks.push({ level: 'high', title: 'عجز السيولة', desc: `النقد يغطي ${(liquidity_ratio * 100).toFixed(0)}% فقط من الالتزامات` });
 		if (k.net_margin < 0) risks.push({ level: 'high', title: 'خسارة صافية', desc: `هامش صافي الربح سلبي ${k.net_margin.toFixed(1)}%` });
+		// Benford's Law risk
+		const bf = this.data.benfords_law;
+		if (bf && (bf.sales?.risk === 'high' || bf.purchases?.risk === 'high')) {
+			risks.push({ level: 'high', title: 'انحراف بنفورد مشبوه', desc: `تحليل قانون بنفورد يكشف انحراف غير طبيعي في توزيع الفواتير — يتطلب تحقيق` });
+		}
+		// Duplicate payments risk
+		const dp = this.data.duplicate_payments;
+		if (dp && dp.count > 0) {
+			risks.push({ level: dp.risk === 'high' ? 'high' : 'medium', title: `مدفوعات مكررة مشبوهة (${dp.count})`, desc: `مبلغ معرض للخطر: ${this.fc(dp.total_risk_amount)} — مدفوعات بنفس المبلغ لنفس المورد` });
+		}
+		// Concentration risk
+		const cr = this.data.concentration_risk;
+		if (cr && cr.cust_risk === 'high') {
+			risks.push({ level: 'medium', title: 'تركز عالي في العملاء', desc: `أعلى عميل يمثل ${cr.top1_cust_pct}% من الإيرادات — خطر فقدان العميل` });
+		}
 		if (k.gross_margin < 15) risks.push({ level: 'medium', title: 'هامش ربح منخفض', desc: `هامش الربح الإجمالي ${k.gross_margin.toFixed(1)}% — ضغط على الأسعار` });
 		if (k.ar_outstanding > k.revenue * 0.4) risks.push({ level: 'medium', title: 'تركز الذمم المدينة', desc: 'الذمم المدينة تتجاوز 40% من الإيرادات' });
 		if (k.inventory_value > k.revenue * 0.5) risks.push({ level: 'medium', title: 'ارتفاع المخزون', desc: 'قيمة المخزون مرتفعة مقارنة بالإيرادات' });
+		// CCC risk
+		const wc = this.data.working_capital_metrics;
+		if (wc && wc.ccc > 90) {
+			risks.push({ level: 'medium', title: 'دورة نقدية طويلة', desc: `دورة التحويل النقدي ${wc.ccc} يوم — رأس المال مقيد لفترة طويلة` });
+		}
 		if (liquidity_ratio >= 0.5 && liquidity_ratio < 1) risks.push({ level: 'low', title: 'سيولة محدودة', desc: 'النقد لا يغطي كامل الالتزامات الحالية' });
 		if (k.gross_margin >= 15 && k.gross_margin < 25) risks.push({ level: 'low', title: 'هامش ربح مقبول', desc: 'هامش الربح مقبول لكن يمكن تحسينه' });
 

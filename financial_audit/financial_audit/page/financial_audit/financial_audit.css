@@ -530,9 +530,144 @@
 	.ai-summary-grid { grid-template-columns: 1fr; }
 }
 
+/* ─── Advanced Audit Divider ──────────────── */
+.audit-divider {
+	text-align: center;
+	margin: 32px 0 20px;
+	position: relative;
+}
+
+.audit-divider::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--fa-primary-light), transparent);
+}
+
+.audit-divider span {
+	position: relative;
+	background: #f8fafc;
+	padding: 6px 20px;
+	font-size: 15px;
+	font-weight: 800 !important;
+	color: var(--fa-primary);
+	letter-spacing: 0.02em;
+	border-radius: 20px;
+	border: 2px solid var(--fa-primary-light);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.audit-divider span i {
+	font-size: 14px;
+	color: var(--fa-primary-light);
+}
+
+/* ─── Audit Metrics Grid ─────────────────── */
+.audit-metrics-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 14px;
+}
+
+.metric-card {
+	background: #fff;
+	border: 1px solid var(--fa-border);
+	border-radius: 10px;
+	padding: 16px 14px;
+	text-align: center;
+	transition: all 0.2s ease;
+	position: relative;
+}
+
+.metric-card:hover {
+	box-shadow: var(--fa-shadow-md);
+	transform: translateY(-1px);
+}
+
+.metric-card.highlight {
+	border-color: var(--fa-primary-light);
+	background: linear-gradient(135deg, #eff6ff 0%, #fff 100%);
+	box-shadow: 0 0 0 1px rgba(59,130,246,0.1), var(--fa-shadow);
+}
+
+.metric-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0 auto 8px;
+	font-size: 14px;
+}
+
+.metric-label {
+	font-size: 11px;
+	font-weight: 700 !important;
+	color: var(--fa-text-sub);
+	margin-bottom: 6px;
+	line-height: 1.4;
+}
+
+.metric-value {
+	font-size: 22px;
+	font-weight: 900 !important;
+	direction: ltr;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+.metric-value small {
+	font-size: 12px;
+	font-weight: 700 !important;
+	color: var(--fa-text-muted);
+}
+
+.metric-sub {
+	font-size: 10px;
+	font-weight: 700 !important;
+	color: var(--fa-text-muted);
+	margin-top: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+/* ─── Benford Stats ──────────────────────── */
+.benford-stats {
+	padding: 12px 20px;
+	border-top: 1px solid var(--fa-border);
+	display: flex;
+	gap: 24px;
+	justify-content: center;
+	flex-wrap: wrap;
+	background: #fafbfc;
+}
+
+/* ─── Responsive: Advanced Sections ──────── */
+@media (max-width: 1200px) {
+	.audit-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+	.audit-metrics-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+	.metric-value { font-size: 18px; }
+	.audit-divider span { font-size: 13px; padding: 4px 14px; }
+}
+
+@media (max-width: 480px) {
+	.audit-metrics-grid { grid-template-columns: 1fr; }
+}
+
 @media print {
 	.financial-audit-page { background: white; padding: 0; }
 	.filters-section, .toggle-chevron, .ai-analysis-section { display: none !important; }
 	.data-section, .chart-section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
 	.section-body { max-height: unset !important; overflow: visible !important; display: block !important; }
+	.audit-divider span { border: 1px solid #999; background: white; }
+	.audit-metrics-grid { grid-template-columns: repeat(4, 1fr); }
 }
