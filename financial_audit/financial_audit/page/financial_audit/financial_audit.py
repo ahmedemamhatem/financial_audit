@@ -16,7 +16,7 @@ def get_financial_audit_data(filters=None):
 		filters["company"] = frappe.defaults.get_user_default("Company") or frappe.db.get_single_value("Global Defaults", "default_company")
 
 	if not filters.get("from_date"):
-		filters["from_date"] = frappe.utils.get_first_day(nowdate())
+		filters["from_date"] = frappe.utils.get_year_start(nowdate())
 
 	if not filters.get("to_date"):
 		filters["to_date"] = nowdate()

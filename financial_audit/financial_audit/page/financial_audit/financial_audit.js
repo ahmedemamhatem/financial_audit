@@ -15,6 +15,7 @@ class FinancialAuditDashboard {
 		this.data = {};
 		this.charts = {};
 		this.currency = 'EGP';
+		this.months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
 		this.setup_page();
 		this.load_puter_js();
@@ -43,7 +44,10 @@ class FinancialAuditDashboard {
 				<!-- Balance Sheet Summary -->
 				<div class="data-section">
 					<div class="section-header">
-						<span class="section-title">ملخص الميزانية العمومية</span>
+						<span class="section-title">
+							<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-balance-scale"></i></span>
+							ملخص الميزانية العمومية
+						</span>
 						<span class="toggle-btn" data-target="balance-sheet-body">▼</span>
 					</div>
 					<div class="section-body balance-sheet-body"></div>
@@ -51,32 +55,58 @@ class FinancialAuditDashboard {
 
 				<!-- Monthly Trends Chart -->
 				<div class="chart-section">
-					<div class="section-header"><span class="section-title">اتجاهات الإيرادات والمصروفات الشهرية</span></div>
+					<div class="section-header">
+						<span class="section-title">
+							<span class="section-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa fa-bar-chart"></i></span>
+							اتجاهات الإيرادات والمصروفات الشهرية
+						</span>
+					</div>
 					<div class="chart-container monthly-chart-container"></div>
+					<div class="chart-stats monthly-chart-stats"></div>
 				</div>
 
-				<!-- Daily Sales + Expense Pie -->
+				<!-- Daily Sales + Expense Breakdown -->
 				<div class="charts-row two-col">
 					<div class="chart-section">
-						<div class="section-header"><span class="section-title">المبيعات اليومية</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#f5f3ff;color:#8b5cf6;"><i class="fa fa-line-chart"></i></span>
+								المبيعات اليومية
+							</span>
+						</div>
 						<div class="chart-container daily-sales-chart-container"></div>
+						<div class="chart-stats daily-chart-stats"></div>
 					</div>
 					<div class="chart-section">
-						<div class="section-header"><span class="section-title">توزيع المصروفات</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-pie-chart"></i></span>
+								توزيع المصروفات
+							</span>
+						</div>
 						<div class="chart-container expense-pie-container"></div>
 					</div>
 				</div>
 
 				<!-- Cash Flow Chart -->
 				<div class="chart-section">
-					<div class="section-header"><span class="section-title">التدفق النقدي الشهري</span></div>
+					<div class="section-header">
+						<span class="section-title">
+							<span class="section-icon" style="background:#f0fdfa;color:#14b8a6;"><i class="fa fa-exchange"></i></span>
+							التدفق النقدي الشهري
+						</span>
+					</div>
 					<div class="chart-container cash-flow-chart-container"></div>
+					<div class="chart-stats cash-flow-stats"></div>
 				</div>
 
 				<!-- P&L -->
 				<div class="data-section pnl-section">
 					<div class="section-header">
-						<span class="section-title">قائمة الدخل</span>
+						<span class="section-title">
+							<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-file-text-o"></i></span>
+							قائمة الدخل
+						</span>
 						<span class="toggle-btn" data-target="pnl-body">▼</span>
 					</div>
 					<div class="section-body pnl-body"></div>
@@ -86,14 +116,20 @@ class FinancialAuditDashboard {
 				<div class="tables-row two-col">
 					<div class="data-section">
 						<div class="section-header">
-							<span class="section-title">ملخص قيود اليومية حسب النوع</span>
+							<span class="section-title">
+								<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-book"></i></span>
+								ملخص قيود اليومية حسب النوع
+							</span>
 							<span class="toggle-btn" data-target="gl-voucher-body">▼</span>
 						</div>
 						<div class="section-body gl-voucher-body"></div>
 					</div>
 					<div class="data-section">
 						<div class="section-header">
-							<span class="section-title">ملخص حركات المخزون حسب النوع</span>
+							<span class="section-title">
+								<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-cubes"></i></span>
+								ملخص حركات المخزون حسب النوع
+							</span>
 							<span class="toggle-btn" data-target="stock-voucher-body">▼</span>
 						</div>
 						<div class="section-body stock-voucher-body"></div>
@@ -103,29 +139,54 @@ class FinancialAuditDashboard {
 				<!-- Top Customers + Top Products -->
 				<div class="tables-row two-col">
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">أعلى العملاء حسب الإيرادات</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fdf2f8;color:#ec4899;"><i class="fa fa-users"></i></span>
+								أعلى العملاء حسب الإيرادات
+							</span>
+						</div>
 						<div class="section-body top-customers-body"></div>
 					</div>
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">أعلى المنتجات حسب الإيرادات</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#ecfdf5;color:#10b981;"><i class="fa fa-shopping-bag"></i></span>
+								أعلى المنتجات حسب الإيرادات
+							</span>
+						</div>
 						<div class="section-body top-products-body"></div>
 					</div>
 				</div>
 
 				<!-- Top Suppliers -->
 				<div class="data-section">
-					<div class="section-header"><span class="section-title">أعلى الموردين</span></div>
+					<div class="section-header">
+						<span class="section-title">
+							<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-truck"></i></span>
+							أعلى الموردين
+						</span>
+					</div>
 					<div class="section-body top-suppliers-body"></div>
 				</div>
 
 				<!-- Sales Returns + Purchase Returns -->
 				<div class="tables-row two-col">
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">مرتجعات المبيعات (إشعارات دائنة)</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-undo"></i></span>
+								مرتجعات المبيعات (إشعارات دائنة)
+							</span>
+						</div>
 						<div class="section-body sales-returns-body"></div>
 					</div>
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">مرتجعات المشتريات (إشعارات مدينة)</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fffbeb;color:#f59e0b;"><i class="fa fa-reply"></i></span>
+								مرتجعات المشتريات (إشعارات مدينة)
+							</span>
+						</div>
 						<div class="section-body purchase-returns-body"></div>
 					</div>
 				</div>
@@ -133,11 +194,21 @@ class FinancialAuditDashboard {
 				<!-- AR Aging + AP Aging -->
 				<div class="tables-row two-col">
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">تقادم الذمم المدينة (العملاء)</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fdf2f8;color:#ec4899;"><i class="fa fa-clock-o"></i></span>
+								تقادم الذمم المدينة (العملاء)
+							</span>
+						</div>
 						<div class="section-body ar-aging-body"></div>
 					</div>
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">تقادم الذمم الدائنة (الموردين)</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fffbeb;color:#f59e0b;"><i class="fa fa-clock-o"></i></span>
+								تقادم الذمم الدائنة (الموردين)
+							</span>
+						</div>
 						<div class="section-body ap-aging-body"></div>
 					</div>
 				</div>
@@ -145,7 +216,10 @@ class FinancialAuditDashboard {
 				<!-- Bank Balances -->
 				<div class="data-section">
 					<div class="section-header">
-						<span class="section-title">أرصدة البنوك والصناديق</span>
+						<span class="section-title">
+							<span class="section-icon" style="background:#f0fdfa;color:#14b8a6;"><i class="fa fa-university"></i></span>
+							أرصدة البنوك والصناديق
+						</span>
 						<span class="toggle-btn" data-target="bank-balances-body">▼</span>
 					</div>
 					<div class="section-body bank-balances-body"></div>
@@ -154,11 +228,21 @@ class FinancialAuditDashboard {
 				<!-- Payment Modes + Journal Entries -->
 				<div class="tables-row two-col">
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">أنماط الدفع</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#f5f3ff;color:#8b5cf6;"><i class="fa fa-credit-card"></i></span>
+								أنماط الدفع
+							</span>
+						</div>
 						<div class="section-body payment-modes-body"></div>
 					</div>
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">ملخص قيود اليومية</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#eef1ff;color:#4361ee;"><i class="fa fa-pencil-square-o"></i></span>
+								ملخص قيود اليومية
+							</span>
+						</div>
 						<div class="section-body journal-entries-body"></div>
 					</div>
 				</div>
@@ -166,11 +250,21 @@ class FinancialAuditDashboard {
 				<!-- Inventory + Stock Movement -->
 				<div class="tables-row two-col">
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">تقييم المخزون حسب المخزن</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#f8fafc;color:#64748b;"><i class="fa fa-warehouse"></i></span>
+								تقييم المخزون حسب المخزن
+							</span>
+						</div>
 						<div class="section-body inventory-body"></div>
 					</div>
 					<div class="data-section">
-						<div class="section-header"><span class="section-title">أعلى حركات المخزون</span></div>
+						<div class="section-header">
+							<span class="section-title">
+								<span class="section-icon" style="background:#fff7ed;color:#f97316;"><i class="fa fa-arrows-v"></i></span>
+								أعلى حركات المخزون
+							</span>
+						</div>
 						<div class="section-body stock-movement-body"></div>
 					</div>
 				</div>
@@ -178,7 +272,10 @@ class FinancialAuditDashboard {
 				<!-- Stock Ageing -->
 				<div class="data-section">
 					<div class="section-header">
-						<span class="section-title">تقادم المخزون (مخزون راكد)</span>
+						<span class="section-title">
+							<span class="section-icon" style="background:#fef2f2;color:#ef4444;"><i class="fa fa-hourglass-half"></i></span>
+							تقادم المخزون (مخزون راكد)
+						</span>
 						<span class="toggle-btn" data-target="stock-ageing-body">▼</span>
 					</div>
 					<div class="section-body stock-ageing-body"></div>
@@ -187,7 +284,7 @@ class FinancialAuditDashboard {
 				<!-- AI Analysis -->
 				<div class="ai-analysis-section" style="display: none;">
 					<div class="section-header ai-header">
-						<span class="section-title">التحليل الذكي (AI)</span>
+						<span class="section-title"><i class="fa fa-magic" style="margin-left:8px"></i> التحليل الذكي (AI)</span>
 						<button class="btn btn-xs btn-default close-ai-btn">✕</button>
 					</div>
 					<div class="ai-analysis-body"></div>
@@ -199,9 +296,12 @@ class FinancialAuditDashboard {
 		this.$filters = this.page.main.find('.filters-section');
 		this.$kpi = this.page.main.find('.kpi-cards');
 		this.$monthly_chart = this.page.main.find('.monthly-chart-container');
+		this.$monthly_stats = this.page.main.find('.monthly-chart-stats');
 		this.$daily_chart = this.page.main.find('.daily-sales-chart-container');
+		this.$daily_stats = this.page.main.find('.daily-chart-stats');
 		this.$expense_pie = this.page.main.find('.expense-pie-container');
 		this.$cash_flow = this.page.main.find('.cash-flow-chart-container');
+		this.$cash_flow_stats = this.page.main.find('.cash-flow-stats');
 		this.$pnl = this.page.main.find('.pnl-body');
 		this.$top_customers = this.page.main.find('.top-customers-body');
 		this.$top_products = this.page.main.find('.top-products-body');
@@ -211,7 +311,6 @@ class FinancialAuditDashboard {
 		this.$inventory = this.page.main.find('.inventory-body');
 		this.$ai = this.page.main.find('.ai-analysis-section');
 		this.$ai_body = this.page.main.find('.ai-analysis-body');
-		// New section references
 		this.$balance_sheet = this.page.main.find('.balance-sheet-body');
 		this.$gl_voucher = this.page.main.find('.gl-voucher-body');
 		this.$stock_voucher = this.page.main.find('.stock-voucher-body');
@@ -236,7 +335,7 @@ class FinancialAuditDashboard {
 
 	render_filters() {
 		const today = frappe.datetime.get_today();
-		const year_start = frappe.datetime.add_months(today, -1);
+		const year_start = frappe.datetime.year_start();
 
 		this.$filters.html(`
 			<div class="filters-row">
@@ -296,7 +395,7 @@ class FinancialAuditDashboard {
 				}
 			},
 			error: () => {
-				this.$kpi.html('<div class="empty-state"><i class="fa fa-exclamation-triangle"></i><p>حدث خطأ أثناء تحميل البيانات</p></div>');
+				this.$kpi.html('<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>حدث خطأ أثناء تحميل البيانات</p></div>');
 			}
 		});
 	}
@@ -359,19 +458,21 @@ class FinancialAuditDashboard {
 		if (!data.length) { this.$balance_sheet.html(this.empty_msg()); return; }
 
 		const root_type_labels = {
-			'Asset': 'الأصول',
-			'Liability': 'الالتزامات',
-			'Equity': 'حقوق الملكية',
-			'Income': 'الإيرادات',
-			'Expense': 'المصروفات'
+			'Asset': 'الأصول', 'Liability': 'الالتزامات', 'Equity': 'حقوق الملكية',
+			'Income': 'الإيرادات', 'Expense': 'المصروفات'
+		};
+		const root_type_icons = {
+			'Asset': 'fa-building', 'Liability': 'fa-credit-card', 'Equity': 'fa-shield',
+			'Income': 'fa-arrow-circle-up', 'Expense': 'fa-arrow-circle-down'
 		};
 
 		const rows = data.map(r => {
 			const label = root_type_labels[r.root_type] || r.root_type;
+			const icon = root_type_icons[r.root_type] || 'fa-circle';
 			const is_debit = ['Asset', 'Expense'].includes(r.root_type);
 			const balance = is_debit ? r.net_balance : -r.net_balance;
 			return `<tr>
-				<td><strong>${label}</strong></td>
+				<td><i class="fa ${icon}" style="margin-left:6px;opacity:0.5"></i> <strong>${label}</strong></td>
 				<td class="currency">${this.fc(r.total_debit)}</td>
 				<td class="currency">${this.fc(r.total_credit)}</td>
 				<td class="currency ${balance >= 0 ? 'positive' : 'negative'}">${this.fc(balance)}</td>
@@ -390,12 +491,12 @@ class FinancialAuditDashboard {
 		const k = this.data.kpis;
 
 		let rows = '';
-		rows += `<tr class="pnl-row parent income-header"><td colspan="2">الإيرادات</td><td class="currency positive">${this.fc(k.revenue)}</td></tr>`;
+		rows += `<tr class="pnl-row parent income-header"><td colspan="2"><i class="fa fa-arrow-circle-up" style="margin-left:6px"></i> الإيرادات</td><td class="currency positive">${this.fc(k.revenue)}</td></tr>`;
 		inc.forEach(a => {
 			rows += `<tr class="pnl-row child"><td></td><td>${a.account_name}</td><td class="currency">${this.fc(a.amount)}</td></tr>`;
 		});
 
-		rows += `<tr class="pnl-row parent expense-header"><td colspan="2">المصروفات</td><td class="currency negative">${this.fc(k.total_expenses)}</td></tr>`;
+		rows += `<tr class="pnl-row parent expense-header"><td colspan="2"><i class="fa fa-arrow-circle-down" style="margin-left:6px"></i> المصروفات</td><td class="currency negative">${this.fc(k.total_expenses)}</td></tr>`;
 		exp.forEach(a => {
 			rows += `<tr class="pnl-row child"><td></td><td>${a.account_name}</td><td class="currency">${this.fc(a.amount)}</td></tr>`;
 		});
@@ -408,15 +509,18 @@ class FinancialAuditDashboard {
 	// ─── Charts ────────────────────────────────────────────
 	render_monthly_chart() {
 		const trends = this.data.monthly_trends || [];
-		if (!trends.length) { this.$monthly_chart.html(this.empty_msg()); return; }
+		if (!trends.length) { this.$monthly_chart.html(this.empty_msg()); this.$monthly_stats.empty(); return; }
 
 		this.$monthly_chart.empty();
-		const months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-		const labels = trends.map(t => `${months_ar[t.mn]} ${t.yr}`);
+		const labels = trends.map(t => `${this.months_ar[t.mn]} ${t.yr}`);
+		const total_revenue = trends.reduce((s, t) => s + (t.revenue || 0), 0);
+		const total_expenses = trends.reduce((s, t) => s + (t.expenses || 0), 0);
+		const avg_revenue = total_revenue / trends.length;
+		const best_month = trends.reduce((best, t) => (t.revenue || 0) > (best.revenue || 0) ? t : best, trends[0]);
 
 		this.charts.monthly = new frappe.Chart(this.$monthly_chart[0], {
-			type: 'bar', height: 320,
-			colors: ['#28a745', '#dc3545'],
+			type: 'bar', height: 340,
+			colors: ['#10b981', '#ef4444'],
 			data: {
 				labels: labels,
 				datasets: [
@@ -424,28 +528,47 @@ class FinancialAuditDashboard {
 					{ name: 'المصروفات', values: trends.map(t => t.expenses) }
 				]
 			},
-			barOptions: { spaceRatio: 0.4 },
+			barOptions: { spaceRatio: 0.35 },
 			tooltipOptions: { formatTooltipY: d => this.fc(d) },
 			axisOptions: { xIsSeries: true }
 		});
+
+		this.$monthly_stats.html(`
+			<div class="chart-stat"><div class="chart-stat-label">إجمالي الإيرادات</div><div class="chart-stat-value positive">${this.fc(total_revenue)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">إجمالي المصروفات</div><div class="chart-stat-value negative">${this.fc(total_expenses)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">متوسط الإيرادات / شهر</div><div class="chart-stat-value">${this.fc(avg_revenue)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">أفضل شهر</div><div class="chart-stat-value">${this.months_ar[best_month.mn]} ${best_month.yr}</div></div>
+		`);
 	}
 
 	render_daily_sales_chart() {
 		const sales = this.data.daily_sales || [];
-		if (!sales.length) { this.$daily_chart.html(this.empty_msg()); return; }
+		if (!sales.length) { this.$daily_chart.html(this.empty_msg()); this.$daily_stats.empty(); return; }
 
 		this.$daily_chart.empty();
+		const total_sales = sales.reduce((s, d) => s + (d.total_sales || 0), 0);
+		const avg_daily = total_sales / sales.length;
+		const best_day = sales.reduce((best, d) => (d.total_sales || 0) > (best.total_sales || 0) ? d : best, sales[0]);
+		const total_invoices = sales.reduce((s, d) => s + (d.invoice_count || 0), 0);
+
 		this.charts.daily = new frappe.Chart(this.$daily_chart[0], {
-			type: 'line', height: 280,
-			colors: ['#667eea'],
+			type: 'line', height: 300,
+			colors: ['#8b5cf6'],
 			data: {
 				labels: sales.map(s => frappe.datetime.str_to_user(s.date)),
 				datasets: [{ name: 'المبيعات', values: sales.map(s => s.total_sales) }]
 			},
-			lineOptions: { regionFill: 1, hideDots: 1, spline: 1 },
+			lineOptions: { regionFill: 1, hideDots: 0, spline: 1, dotSize: 3 },
 			tooltipOptions: { formatTooltipY: d => this.fc(d) },
 			axisOptions: { xIsSeries: true }
 		});
+
+		this.$daily_stats.html(`
+			<div class="chart-stat"><div class="chart-stat-label">إجمالي المبيعات</div><div class="chart-stat-value positive">${this.fc(total_sales)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">متوسط يومي</div><div class="chart-stat-value">${this.fc(avg_daily)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">أفضل يوم</div><div class="chart-stat-value">${frappe.datetime.str_to_user(best_day.date)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">عدد الفواتير</div><div class="chart-stat-value">${total_invoices}</div></div>
+		`);
 	}
 
 	render_expense_pie() {
@@ -453,12 +576,14 @@ class FinancialAuditDashboard {
 		if (!bd.length) { this.$expense_pie.html(this.empty_msg()); return; }
 
 		this.$expense_pie.empty();
+		const colors = ['#10b981', '#ef4444', '#4361ee', '#f97316', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#64748b', '#06b6d4'];
+
 		this.charts.expense = new frappe.Chart(this.$expense_pie[0], {
-			type: 'percentage', height: 280,
-			colors: ['#28a745', '#dc3545', '#007bff', '#fd7e14', '#6f42c1', '#e83e8c', '#20c997', '#ffc107', '#6c757d', '#17a2b8'],
+			type: 'pie', height: 300,
+			colors: colors,
 			data: {
-				labels: bd.slice(0, 8).map(e => e.category_name),
-				datasets: [{ values: bd.slice(0, 8).map(e => e.amount) }]
+				labels: bd.slice(0, 10).map(e => e.category_name),
+				datasets: [{ values: bd.slice(0, 10).map(e => e.amount) }]
 			},
 			tooltipOptions: { formatTooltipY: d => this.fc(d) }
 		});
@@ -466,15 +591,17 @@ class FinancialAuditDashboard {
 
 	render_cash_flow_chart() {
 		const cf = this.data.cash_flow || [];
-		if (!cf.length) { this.$cash_flow.html(this.empty_msg()); return; }
+		if (!cf.length) { this.$cash_flow.html(this.empty_msg()); this.$cash_flow_stats.empty(); return; }
 
 		this.$cash_flow.empty();
-		const months_ar = ['', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-		const labels = cf.map(c => `${months_ar[c.mn]} ${c.yr}`);
+		const labels = cf.map(c => `${this.months_ar[c.mn]} ${c.yr}`);
+		const total_received = cf.reduce((s, c) => s + (c.received || 0), 0);
+		const total_paid = cf.reduce((s, c) => s + (c.paid || 0), 0);
+		const net_flow = total_received - total_paid;
 
 		this.charts.cash_flow = new frappe.Chart(this.$cash_flow[0], {
-			type: 'bar', height: 320,
-			colors: ['#28a745', '#dc3545'],
+			type: 'bar', height: 340,
+			colors: ['#14b8a6', '#f97316'],
 			data: {
 				labels: labels,
 				datasets: [
@@ -482,10 +609,16 @@ class FinancialAuditDashboard {
 					{ name: 'المدفوعات', values: cf.map(c => c.paid) }
 				]
 			},
-			barOptions: { spaceRatio: 0.4 },
+			barOptions: { spaceRatio: 0.35 },
 			tooltipOptions: { formatTooltipY: d => this.fc(d) },
 			axisOptions: { xIsSeries: true }
 		});
+
+		this.$cash_flow_stats.html(`
+			<div class="chart-stat"><div class="chart-stat-label">إجمالي المقبوضات</div><div class="chart-stat-value positive">${this.fc(total_received)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">إجمالي المدفوعات</div><div class="chart-stat-value negative">${this.fc(total_paid)}</div></div>
+			<div class="chart-stat"><div class="chart-stat-label">صافي التدفق</div><div class="chart-stat-value ${net_flow >= 0 ? 'positive' : 'negative'}">${this.fc(net_flow)}</div></div>
+		`);
 	}
 
 	// ─── GL Voucher Summary ───────────────────────────────
@@ -493,14 +626,15 @@ class FinancialAuditDashboard {
 		const data = this.data.gl_voucher_summary || [];
 		if (!data.length) { this.$gl_voucher.html(this.empty_msg()); return; }
 
-		let total_debit = 0, total_credit = 0;
+		let total_debit = 0, total_credit = 0, total_docs = 0;
 		const rows = data.map((v, i) => {
 			total_debit += v.total_debit;
 			total_credit += v.total_credit;
+			total_docs += v.doc_count;
 			return `<tr>
 				<td>${i + 1}</td>
 				<td><a href="/app/${frappe.router.slug(v.voucher_type)}">${v.voucher_type}</a></td>
-				<td>${v.doc_count}</td>
+				<td><span class="section-count">${v.doc_count}</span></td>
 				<td>${v.entry_count}</td>
 				<td class="currency">${this.fc(v.total_debit)}</td>
 				<td class="currency">${this.fc(v.total_credit)}</td>
@@ -510,7 +644,7 @@ class FinancialAuditDashboard {
 		this.$gl_voucher.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>نوع المستند</th><th>المستندات</th><th>القيود</th><th>مدين</th><th>دائن</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="4">الإجمالي</td><td class="currency">${this.fc(total_debit)}</td><td class="currency">${this.fc(total_credit)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td><span class="section-count">${total_docs}</span></td><td></td><td class="currency">${this.fc(total_debit)}</td><td class="currency">${this.fc(total_credit)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -522,7 +656,7 @@ class FinancialAuditDashboard {
 		const rows = data.map((v, i) => `<tr>
 			<td>${i + 1}</td>
 			<td><a href="/app/${frappe.router.slug(v.voucher_type)}">${v.voucher_type}</a></td>
-			<td>${v.doc_count}</td>
+			<td><span class="section-count">${v.doc_count}</span></td>
 			<td>${v.entry_count}</td>
 			<td class="currency positive">${format_number(v.qty_in, null, 2)}</td>
 			<td class="currency negative">${format_number(v.qty_out, null, 2)}</td>
@@ -545,10 +679,13 @@ class FinancialAuditDashboard {
 			return `<tr>
 				<td>${i + 1}</td>
 				<td><a href="/app/customer/${c.customer}">${c.customer_name}</a></td>
-				<td>${c.invoice_count}</td>
+				<td><span class="section-count">${c.invoice_count}</span></td>
 				<td class="currency">${this.fc(c.total_revenue)}</td>
 				<td class="currency negative">${this.fc(c.outstanding)}</td>
-				<td><div class="collection-bar"><div class="fill ${bar_css}" style="width:${rate}%"></div></div><small>${rate}%</small></td>
+				<td>
+					<div class="collection-bar"><div class="fill ${bar_css}" style="width:${Math.min(rate, 100)}%"></div></div>
+					<div class="collection-rate-text">${rate}%</div>
+				</td>
 			</tr>`;
 		}).join('');
 
@@ -561,13 +698,17 @@ class FinancialAuditDashboard {
 		const data = this.data.top_products || [];
 		if (!data.length) { this.$top_products.html(this.empty_msg()); return; }
 
-		const rows = data.map((p, i) => `<tr>
-			<td>${i + 1}</td>
-			<td><a href="/app/item/${p.item_code}">${p.item_name}</a></td>
-			<td>${format_number(p.total_qty, null, 2)}</td>
-			<td class="currency">${this.fc(p.total_revenue)}</td>
-			<td>${p.invoice_count}</td>
-		</tr>`).join('');
+		const max_revenue = Math.max(...data.map(p => p.total_revenue || 0));
+		const rows = data.map((p, i) => {
+			const pct = max_revenue ? ((p.total_revenue / max_revenue) * 100) : 0;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td><a href="/app/item/${p.item_code}">${p.item_name}</a></td>
+				<td>${format_number(p.total_qty, null, 2)}</td>
+				<td class="currency">${this.fc(p.total_revenue)}</td>
+				<td><span class="section-count">${p.invoice_count}</span></td>
+			</tr>`;
+		}).join('');
 
 		this.$top_products.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>المنتج</th><th>الكمية</th><th>الإيرادات</th><th>الفواتير</th>
@@ -581,7 +722,7 @@ class FinancialAuditDashboard {
 		const rows = data.map((s, i) => `<tr>
 			<td>${i + 1}</td>
 			<td><a href="/app/supplier/${s.supplier}">${s.supplier_name}</a></td>
-			<td>${s.invoice_count}</td>
+			<td><span class="section-count">${s.invoice_count}</span></td>
 			<td class="currency">${this.fc(s.total_purchases)}</td>
 			<td class="currency negative">${this.fc(s.outstanding)}</td>
 		</tr>`).join('');
@@ -602,7 +743,7 @@ class FinancialAuditDashboard {
 			return `<tr>
 				<td>${i + 1}</td>
 				<td>${r.customer_name}</td>
-				<td>${r.return_count}</td>
+				<td><span class="section-count">${r.return_count}</span></td>
 				<td class="currency negative">${this.fc(r.return_amount)}</td>
 			</tr>`;
 		}).join('');
@@ -610,7 +751,7 @@ class FinancialAuditDashboard {
 		this.$sales_returns.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>العميل</th><th>عدد المرتجعات</th><th>المبلغ</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency negative">${this.fc(total)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td></td><td class="currency negative">${this.fc(total)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -624,7 +765,7 @@ class FinancialAuditDashboard {
 			return `<tr>
 				<td>${i + 1}</td>
 				<td>${r.supplier_name}</td>
-				<td>${r.return_count}</td>
+				<td><span class="section-count">${r.return_count}</span></td>
 				<td class="currency negative">${this.fc(r.return_amount)}</td>
 			</tr>`;
 		}).join('');
@@ -632,7 +773,7 @@ class FinancialAuditDashboard {
 		this.$purchase_returns.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>المورد</th><th>عدد المرتجعات</th><th>المبلغ</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency negative">${this.fc(total)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td></td><td class="currency negative">${this.fc(total)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -641,34 +782,46 @@ class FinancialAuditDashboard {
 		const data = this.data.ar_aging || [];
 		if (!data.length) { this.$ar_aging.html(this.empty_msg()); return; }
 
-		const rows = data.map((a, i) => `<tr>
-			<td>${i + 1}</td>
-			<td><a href="/app/customer/${a.customer}">${a.customer}</a></td>
-			<td class="currency negative">${this.fc(a.outstanding)}</td>
-			<td>${frappe.datetime.str_to_user(a.oldest_date)}</td>
-			<td>${this.aging_badge(a.days_outstanding)}</td>
-		</tr>`).join('');
+		let total = 0;
+		const rows = data.map((a, i) => {
+			total += a.outstanding;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td><a href="/app/customer/${a.customer}">${a.customer}</a></td>
+				<td class="currency negative">${this.fc(a.outstanding)}</td>
+				<td>${frappe.datetime.str_to_user(a.oldest_date)}</td>
+				<td>${this.aging_badge(a.days_outstanding)}</td>
+			</tr>`;
+		}).join('');
 
 		this.$ar_aging.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>العميل</th><th>المستحق</th><th>أقدم فاتورة</th><th>العمر</th>
-		</tr></thead><tbody>${rows}</tbody></table>`);
+		</tr></thead><tbody>${rows}
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td class="currency negative">${this.fc(total)}</td><td colspan="2"></td></tr>
+		</tbody></table>`);
 	}
 
 	render_ap_aging() {
 		const data = this.data.ap_aging || [];
 		if (!data.length) { this.$ap_aging.html(this.empty_msg()); return; }
 
-		const rows = data.map((a, i) => `<tr>
-			<td>${i + 1}</td>
-			<td><a href="/app/supplier/${a.supplier}">${a.supplier}</a></td>
-			<td class="currency negative">${this.fc(a.outstanding)}</td>
-			<td>${frappe.datetime.str_to_user(a.oldest_date)}</td>
-			<td>${this.aging_badge(a.days_outstanding)}</td>
-		</tr>`).join('');
+		let total = 0;
+		const rows = data.map((a, i) => {
+			total += a.outstanding;
+			return `<tr>
+				<td>${i + 1}</td>
+				<td><a href="/app/supplier/${a.supplier}">${a.supplier}</a></td>
+				<td class="currency negative">${this.fc(a.outstanding)}</td>
+				<td>${frappe.datetime.str_to_user(a.oldest_date)}</td>
+				<td>${this.aging_badge(a.days_outstanding)}</td>
+			</tr>`;
+		}).join('');
 
 		this.$ap_aging.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>المورد</th><th>المستحق</th><th>أقدم فاتورة</th><th>العمر</th>
-		</tr></thead><tbody>${rows}</tbody></table>`);
+		</tr></thead><tbody>${rows}
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td class="currency negative">${this.fc(total)}</td><td colspan="2"></td></tr>
+		</tbody></table>`);
 	}
 
 	// ─── Bank Balances ────────────────────────────────────
@@ -692,7 +845,7 @@ class FinancialAuditDashboard {
 		this.$bank_balances.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>الحساب</th><th>النوع</th><th>الرصيد</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency ${total >= 0 ? 'positive' : 'negative'}">${this.fc(total)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td></td><td class="currency ${total >= 0 ? 'positive' : 'negative'}">${this.fc(total)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -702,12 +855,13 @@ class FinancialAuditDashboard {
 		if (!data.length) { this.$payment_modes.html(this.empty_msg()); return; }
 
 		const type_labels = { 'Receive': 'تحصيل', 'Pay': 'دفع', 'Internal Transfer': 'تحويل داخلي' };
+		const type_css_map = { 'Receive': 'receive', 'Pay': 'pay', 'Internal Transfer': 'transfer' };
 
 		const rows = data.map((p, i) => `<tr>
 			<td>${i + 1}</td>
 			<td>${p.mode}</td>
-			<td><span class="payment-type-badge ${p.payment_type === 'Receive' ? 'receive' : 'pay'}">${type_labels[p.payment_type] || p.payment_type}</span></td>
-			<td>${p.entry_count}</td>
+			<td><span class="payment-type-badge ${type_css_map[p.payment_type] || 'pay'}">${type_labels[p.payment_type] || p.payment_type}</span></td>
+			<td><span class="section-count">${p.entry_count}</span></td>
 			<td class="currency">${this.fc(p.total_amount)}</td>
 		</tr>`).join('');
 
@@ -727,7 +881,7 @@ class FinancialAuditDashboard {
 			return `<tr>
 				<td>${i + 1}</td>
 				<td>${j.entry_type}</td>
-				<td>${j.entry_count}</td>
+				<td><span class="section-count">${j.entry_count}</span></td>
 				<td class="currency">${this.fc(j.total_amount)}</td>
 			</tr>`;
 		}).join('');
@@ -735,7 +889,7 @@ class FinancialAuditDashboard {
 		this.$journal_entries.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>نوع القيد</th><th>العدد</th><th>المبلغ</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="3">الإجمالي</td><td class="currency">${this.fc(total)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td></td><td class="currency">${this.fc(total)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -744,13 +898,14 @@ class FinancialAuditDashboard {
 		const data = this.data.inventory_by_warehouse || [];
 		if (!data.length) { this.$inventory.html(this.empty_msg()); return; }
 
-		let total_value = 0;
+		let total_value = 0, total_items = 0;
 		const rows = data.map((w, i) => {
 			total_value += w.total_value;
+			total_items += w.item_count;
 			return `<tr>
 				<td>${i + 1}</td>
 				<td>${w.warehouse}</td>
-				<td>${w.item_count}</td>
+				<td><span class="section-count">${w.item_count}</span></td>
 				<td>${format_number(w.total_qty, null, 2)}</td>
 				<td class="currency">${this.fc(w.total_value)}</td>
 			</tr>`;
@@ -759,7 +914,7 @@ class FinancialAuditDashboard {
 		this.$inventory.html(`<table class="audit-table"><thead><tr>
 			<th>#</th><th>المخزن</th><th>الأصناف</th><th>الكمية</th><th>القيمة</th>
 		</tr></thead><tbody>${rows}
-		<tr class="pnl-row total"><td colspan="4">الإجمالي</td><td class="currency">${this.fc(total_value)}</td></tr>
+		<tr class="table-total-row"><td></td><td>الإجمالي</td><td><span class="section-count">${total_items}</span></td><td></td><td class="currency">${this.fc(total_value)}</td></tr>
 		</tbody></table>`);
 	}
 
@@ -775,7 +930,7 @@ class FinancialAuditDashboard {
 			<td class="currency positive">${format_number(s.qty_in, null, 2)}</td>
 			<td class="currency negative">${format_number(s.qty_out, null, 2)}</td>
 			<td class="currency ${s.value_change >= 0 ? 'positive' : 'negative'}">${this.fc(s.value_change)}</td>
-			<td>${s.txn_count}</td>
+			<td><span class="section-count">${s.txn_count}</span></td>
 		</tr>`).join('');
 
 		this.$stock_movement.html(`<table class="audit-table"><thead><tr>
@@ -817,7 +972,6 @@ class FinancialAuditDashboard {
 		this.$ai.slideDown();
 		this.$ai_body.html('<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> جاري التحليل بالذكاء الاصطناعي... قد يستغرق دقيقة</div>');
 
-		// Scroll to AI section
 		$('html, body').animate({ scrollTop: this.$ai.offset().top - 100 }, 300);
 
 		try {
@@ -827,7 +981,7 @@ class FinancialAuditDashboard {
 				: (response?.message?.content?.[0]?.text || response?.message?.content || response?.toString() || 'لا توجد استجابة');
 			this.show_ai_results(text);
 		} catch (e) {
-			this.$ai_body.html(`<div class="empty-state"><i class="fa fa-exclamation-triangle"></i><p>حدث خطأ: ${e.message || e}</p></div>`);
+			this.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>حدث خطأ: ${e.message || e}</p></div>`);
 		}
 	}
 
@@ -857,7 +1011,6 @@ class FinancialAuditDashboard {
 			`${c.yr}-${c.mn}: مقبوضات ${c.received?.toLocaleString()} - مدفوعات ${c.paid?.toLocaleString()}`
 		).join('\n');
 
-		// New data sections for AI
 		const balance_sheet = (this.data.balance_sheet || []).map(b =>
 			`${b.root_type}: مدين ${b.total_debit?.toLocaleString()} - دائن ${b.total_credit?.toLocaleString()} - صافي ${b.net_balance?.toLocaleString()}`
 		).join('\n');
@@ -970,8 +1123,41 @@ ${installed_apps}
 	}
 
 	show_ai_results(text) {
-		// Convert markdown to basic HTML
-		let html = text
+		const k = this.data.kpis;
+
+		// Build KPI summary cards for AI section
+		const health_score = k.net_margin > 15 ? 85 : (k.net_margin > 5 ? 65 : (k.net_margin > 0 ? 45 : 25));
+		const health_color = health_score >= 70 ? '#10b981' : (health_score >= 50 ? '#f59e0b' : '#ef4444');
+		const health_label = health_score >= 70 ? 'جيد' : (health_score >= 50 ? 'متوسط' : 'ضعيف');
+
+		// Top 5 customers summary
+		const top5 = (this.data.top_customers || []).slice(0, 5);
+		const top5_html = top5.map((c, i) => `<tr>
+			<td style="color:rgba(255,255,255,0.7)">${i+1}</td>
+			<td>${c.customer_name}</td>
+			<td style="direction:ltr;text-align:left">${this.fc(c.total_revenue)}</td>
+			<td style="color:${(c.collection_rate||0) >= 70 ? '#34d399' : '#fbbf24'}">${c.collection_rate||0}%</td>
+		</tr>`).join('');
+
+		// Top 5 expenses
+		const top5_exp = (this.data.expense_breakdown || []).slice(0, 5);
+		const top5_exp_html = top5_exp.map((e, i) => `<tr>
+			<td style="color:rgba(255,255,255,0.7)">${i+1}</td>
+			<td>${e.category_name}</td>
+			<td style="direction:ltr;text-align:left">${this.fc(e.amount)}</td>
+		</tr>`).join('');
+
+		// Monthly trend mini data
+		const trends = this.data.monthly_trends || [];
+		const trend_html = trends.map(t => `<tr>
+			<td>${this.months_ar[t.mn]} ${t.yr}</td>
+			<td style="color:#34d399;direction:ltr;text-align:left">${this.fc(t.revenue)}</td>
+			<td style="color:#f87171;direction:ltr;text-align:left">${this.fc(t.expenses)}</td>
+			<td style="color:${(t.revenue - t.expenses) >= 0 ? '#34d399' : '#f87171'};direction:ltr;text-align:left">${this.fc(t.revenue - t.expenses)}</td>
+		</tr>`).join('');
+
+		// Convert AI text to HTML
+		let ai_html = text
 			.replace(/^### (.*$)/gm, '<h4>$1</h4>')
 			.replace(/^## (.*$)/gm, '<h3>$1</h3>')
 			.replace(/^# (.*$)/gm, '<h2>$1</h2>')
@@ -982,18 +1168,96 @@ ${installed_apps}
 			.replace(/\n\n/g, '</p><p>')
 			.replace(/\n/g, '<br>');
 
-		// Wrap consecutive <li> in <ul>
-		html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
-		html = html.replace(/<\/ul>\s*<ul>/g, '');
+		ai_html = ai_html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+		ai_html = ai_html.replace(/<\/ul>\s*<ul>/g, '');
 
 		this.$ai_body.html(`
 			<div class="ai-report" dir="rtl">
 				<div class="ai-report-header">
 					<i class="fa fa-magic"></i>
-					<span>تقرير التحليل الذكي</span>
-					<span class="ai-date">${frappe.datetime.now_datetime()}</span>
+					<span>تقرير التحليل الذكي - ${this.data.company}</span>
+					<span class="ai-date">${this.data.from_date} إلى ${this.data.to_date}</span>
 				</div>
-				<div class="ai-report-content"><p>${html}</p></div>
+
+				<!-- AI Dashboard Summary Cards -->
+				<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;">
+					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
+						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">تقييم الصحة المالية</div>
+						<div style="font-size:2.2em;font-weight:800;color:${health_color}">${health_score}</div>
+						<div style="font-size:0.8em;color:${health_color};font-weight:600">${health_label}</div>
+					</div>
+					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
+						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">صافي الربح</div>
+						<div style="font-size:1.4em;font-weight:700;color:${k.net_profit >= 0 ? '#34d399' : '#f87171'};direction:ltr">${this.fc(k.net_profit)}</div>
+						<div style="font-size:0.8em;opacity:0.8">هامش ${k.net_margin.toFixed(1)}%</div>
+					</div>
+					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
+						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">السيولة النقدية</div>
+						<div style="font-size:1.4em;font-weight:700;color:${k.cash_balance >= 0 ? '#34d399' : '#f87171'};direction:ltr">${this.fc(k.cash_balance)}</div>
+						<div style="font-size:0.8em;opacity:0.8">${k.cash_balance >= k.ap_outstanding ? 'تغطي الالتزامات' : 'لا تغطي الالتزامات'}</div>
+					</div>
+					<div style="background:rgba(255,255,255,0.12);border-radius:12px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.15)">
+						<div style="font-size:0.75em;opacity:0.7;margin-bottom:8px">نسبة التحصيل الإجمالية</div>
+						<div style="font-size:1.4em;font-weight:700;direction:ltr">${k.revenue > 0 ? ((1 - k.ar_outstanding/k.revenue)*100).toFixed(0) : 100}%</div>
+						<div style="font-size:0.8em;opacity:0.8">ذمم مدينة: ${this.fc(k.ar_outstanding)}</div>
+					</div>
+				</div>
+
+				<!-- Monthly Trend Table -->
+				${trends.length ? `
+				<div style="margin-bottom:24px">
+					<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
+						<i class="fa fa-bar-chart" style="margin-left:8px"></i> الأداء الشهري
+					</h3>
+					<table style="width:100%;border-collapse:collapse;font-size:0.88em">
+						<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
+							<th style="padding:8px 12px;text-align:right;opacity:0.8">الشهر</th>
+							<th style="padding:8px 12px;text-align:left;opacity:0.8">الإيرادات</th>
+							<th style="padding:8px 12px;text-align:left;opacity:0.8">المصروفات</th>
+							<th style="padding:8px 12px;text-align:left;opacity:0.8">صافي</th>
+						</tr></thead>
+						<tbody>${trend_html}</tbody>
+					</table>
+				</div>` : ''}
+
+				<!-- Top Customers + Top Expenses side by side -->
+				<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+					${top5.length ? `<div>
+						<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
+							<i class="fa fa-users" style="margin-left:8px"></i> أعلى 5 عملاء
+						</h3>
+						<table style="width:100%;border-collapse:collapse;font-size:0.85em">
+							<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
+								<th style="padding:6px 8px;text-align:right;opacity:0.7">#</th>
+								<th style="padding:6px 8px;text-align:right;opacity:0.7">العميل</th>
+								<th style="padding:6px 8px;text-align:left;opacity:0.7">الإيرادات</th>
+								<th style="padding:6px 8px;text-align:left;opacity:0.7">التحصيل</th>
+							</tr></thead>
+							<tbody>${top5_html}</tbody>
+						</table>
+					</div>` : '<div></div>'}
+					${top5_exp.length ? `<div>
+						<h3 style="color:white;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.15)">
+							<i class="fa fa-pie-chart" style="margin-left:8px"></i> أعلى 5 مصروفات
+						</h3>
+						<table style="width:100%;border-collapse:collapse;font-size:0.85em">
+							<thead><tr style="border-bottom:1px solid rgba(255,255,255,0.2)">
+								<th style="padding:6px 8px;text-align:right;opacity:0.7">#</th>
+								<th style="padding:6px 8px;text-align:right;opacity:0.7">البند</th>
+								<th style="padding:6px 8px;text-align:left;opacity:0.7">المبلغ</th>
+							</tr></thead>
+							<tbody>${top5_exp_html}</tbody>
+						</table>
+					</div>` : '<div></div>'}
+				</div>
+
+				<!-- AI Analysis Text -->
+				<div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:24px;margin-top:8px">
+					<h3 style="color:white;margin:0 0 16px;font-size:1.2em">
+						<i class="fa fa-lightbulb-o" style="margin-left:8px;color:#fbbf24"></i> التحليل والتوصيات
+					</h3>
+					<div class="ai-report-content"><p>${ai_html}</p></div>
+				</div>
 			</div>
 		`);
 	}
@@ -1004,12 +1268,12 @@ ${installed_apps}
 	}
 
 	aging_badge(days) {
-		if (days <= 30) return `<span class="aging-badge current">${days} يوم</span>`;
-		if (days <= 60) return `<span class="aging-badge warning">${days} يوم</span>`;
-		return `<span class="aging-badge overdue">${days} يوم</span>`;
+		if (days <= 30) return `<span class="aging-badge current"><i class="fa fa-check-circle"></i> ${days} يوم</span>`;
+		if (days <= 60) return `<span class="aging-badge warning"><i class="fa fa-exclamation-circle"></i> ${days} يوم</span>`;
+		return `<span class="aging-badge overdue"><i class="fa fa-times-circle"></i> ${days} يوم</span>`;
 	}
 
 	empty_msg() {
-		return '<div class="empty-state"><i class="fa fa-inbox"></i><p>لا توجد بيانات</p></div>';
+		return '<div class="empty-state"><div class="empty-icon"><i class="fa fa-inbox"></i></div><p>لا توجد بيانات</p></div>';
 	}
 }
