@@ -3,6 +3,10 @@ from frappe import _
 from frappe.utils import flt, getdate, nowdate, cint, date_diff, add_years
 import json
 import math
+import copy
+import time
+import string
+import requests as http_requests
 
 
 @frappe.whitelist()
@@ -1297,3 +1301,684 @@ def get_ratio_trend(filters):
 
 	months_data.reverse()
 	return {"months": months_data}
+
+
+# ─── AI Analysis: Settings, Anonymization, Proxy ─────────────────────────────
+
+@frappe.whitelist()
+def get_ai_settings():
+	"""Return AI settings for the frontend to know which provider flow to use."""
+	try:
+		settings = frappe.get_single("Financial Audit Settings")
+		return {
+			"enabled": cint(settings.enabled),
+			"provider": settings.ai_provider or "Puter (Free)",
+			"anonymize_data": cint(settings.anonymize_data),
+			"model_name": settings.model_name or "gpt-4o-mini",
+		}
+	except Exception:
+		return {
+			"enabled": 0,
+			"provider": "Puter (Free)",
+			"anonymize_data": 1,
+			"model_name": "gpt-4o-mini",
+		}
+
+
+@frappe.whitelist()
+def get_ai_analysis(filters=None, lang=None):
+	"""Server-side AI analysis with anonymization, rate limiting, and audit logging."""
+	settings = frappe.get_single("Financial Audit Settings")
+
+	if not cint(settings.enabled):
+		frappe.throw(_("AI Analysis is disabled. Enable it in Financial Audit Settings."))
+
+	if isinstance(filters, str):
+		filters = frappe.parse_json(filters)
+	filters = frappe._dict(filters or {})
+	lang = lang or frappe.local.lang or "ar"
+
+	# Rate limiting
+	user = frappe.session.user
+	today = nowdate()
+	cache_key = f"financial_audit_ai:{user}:{today}"
+	request_count = cint(frappe.cache.get(cache_key))
+
+	if request_count >= cint(settings.max_requests_per_day or 20):
+		_log_ai_request(user, filters, "Rate Limited", provider=settings.ai_provider,
+			error="Daily limit exceeded")
+		frappe.throw(_("You have exceeded the maximum number of AI analysis requests for today ({0}).").format(
+			settings.max_requests_per_day
+		))
+
+	# Get financial data server-side
+	data = get_financial_audit_data(filters)
+
+	# Anonymize if enabled
+	if cint(settings.anonymize_data):
+		data, _mappings = anonymize_audit_data(data, cint(settings.anonymize_company))
+
+	# Build prompt server-side
+	prompt = build_ai_prompt_server(data, lang)
+
+	provider = settings.ai_provider or "Puter (Free)"
+
+	if provider == "Puter (Free)":
+		# Return the prompt for the frontend to call Puter client-side
+		_increment_rate_limit(cache_key)
+		_log_ai_request(user, filters, "Success", provider=provider,
+			model=settings.model_name)
+		return {"provider": "Puter", "prompt": prompt}
+
+	# OpenAI or Custom Endpoint — call from backend
+	if not settings.api_key:
+		frappe.throw(_("API Key is required for {0} provider. Set it in Financial Audit Settings.").format(provider))
+
+	start_time = time.time()
+	try:
+		ai_response = call_ai_api(settings, prompt)
+		elapsed = round(time.time() - start_time, 2)
+
+		_increment_rate_limit(cache_key)
+		_log_ai_request(user, filters, "Success", provider=provider,
+			model=settings.model_name, response_time=elapsed)
+
+		return {"provider": provider, "analysis": ai_response}
+
+	except Exception as e:
+		elapsed = round(time.time() - start_time, 2)
+		_log_ai_request(user, filters, "Failed", provider=provider,
+			error=str(e)[:500], model=settings.model_name, response_time=elapsed)
+		frappe.log_error(title="AI Analysis Error", message=frappe.get_traceback())
+		frappe.throw(_("AI analysis failed: {0}").format(str(e)))
+
+
+def _increment_rate_limit(cache_key):
+	"""Increment the daily rate limit counter in Redis."""
+	current = frappe.cache.get(cache_key)
+	if current is None:
+		frappe.cache.setex(cache_key, 86400, 1)
+	else:
+		frappe.cache.incrby(cache_key, 1)
+
+
+def call_ai_api(settings, prompt):
+	"""Call the AI provider API (OpenAI or custom endpoint)."""
+	if settings.ai_provider == "Custom Endpoint":
+		url = settings.custom_endpoint
+	else:
+		url = "https://api.openai.com/v1/chat/completions"
+
+	api_key = settings.get_password("api_key")
+
+	headers = {
+		"Authorization": f"Bearer {api_key}",
+		"Content-Type": "application/json",
+	}
+
+	payload = {
+		"model": settings.model_name or "gpt-4o-mini",
+		"messages": [
+			{"role": "user", "content": prompt}
+		],
+		"temperature": 0.3,
+		"max_tokens": 4000,
+	}
+
+	response = http_requests.post(url, json=payload, headers=headers, timeout=120)
+
+	if response.status_code != 200:
+		try:
+			error_detail = response.json().get("error", {}).get("message", response.text[:300])
+		except Exception:
+			error_detail = response.text[:300]
+		frappe.throw(_("AI API returned error {0}: {1}").format(response.status_code, error_detail))
+
+	result = response.json()
+	return result["choices"][0]["message"]["content"]
+
+
+def _log_ai_request(user, filters, status, provider=None, error=None, model=None, response_time=None):
+	"""Create an AI Audit Log entry."""
+	try:
+		filters = filters or {}
+		frappe.get_doc({
+			"doctype": "AI Audit Log",
+			"user": user,
+			"company": filters.get("company", ""),
+			"from_date": filters.get("from_date"),
+			"to_date": filters.get("to_date"),
+			"status": status,
+			"provider": provider or "",
+			"model_used": model or "",
+			"error_message": error or "",
+			"response_time": flt(response_time),
+		}).insert(ignore_permissions=True)
+		frappe.db.commit()
+	except Exception:
+		frappe.log_error(title="AI Audit Log Error")
+
+
+# ─── Data Anonymization ──────────────────────────────────────────────────────
+
+def anonymize_audit_data(data, anonymize_company=True):
+	"""Anonymize identifiable names in financial audit data before sending to AI.
+
+	Replaces customer/supplier/product/account names with generic labels.
+	All numerical values (amounts, ratios, percentages) remain intact.
+	"""
+	data = copy.deepcopy(data)
+
+	# Collect all unique names
+	customer_names = set()
+	supplier_names = set()
+	product_names = set()
+	bank_names = set()
+	cost_center_names = set()
+
+	for c in (data.get("top_customers") or []):
+		if c.get("customer_name"):
+			customer_names.add(c["customer_name"])
+	for a in (data.get("ar_aging") or []):
+		if a.get("customer"):
+			customer_names.add(a["customer"])
+	for r in (data.get("sales_returns") or []):
+		if r.get("customer_name"):
+			customer_names.add(r["customer_name"])
+
+	for s in (data.get("top_suppliers") or []):
+		if s.get("supplier_name"):
+			supplier_names.add(s["supplier_name"])
+	for a in (data.get("ap_aging") or []):
+		if a.get("supplier"):
+			supplier_names.add(a["supplier"])
+	for r in (data.get("purchase_returns") or []):
+		if r.get("supplier_name"):
+			supplier_names.add(r["supplier_name"])
+	dp = data.get("duplicate_payments") or {}
+	for item in (dp.get("items") or []):
+		if item.get("supplier"):
+			supplier_names.add(item["supplier"])
+
+	for p in (data.get("top_products") or []):
+		if p.get("item_name"):
+			product_names.add(p["item_name"])
+	for s in (data.get("stock_movement") or []):
+		if s.get("item_name"):
+			product_names.add(s["item_name"])
+	for s in (data.get("stock_ageing") or []):
+		if s.get("item_name"):
+			product_names.add(s["item_name"])
+	it = data.get("inventory_turnover") or {}
+	for item in (it.get("items") or []):
+		if item.get("item_name"):
+			product_names.add(item["item_name"])
+
+	for b in (data.get("bank_balances") or []):
+		if b.get("account_name"):
+			bank_names.add(b["account_name"])
+
+	ccpl = data.get("cost_center_pl") or {}
+	for c in (ccpl.get("items") or []):
+		if c.get("cost_center"):
+			cost_center_names.add(c["cost_center"])
+
+	# Generate label mappings
+	customer_map = _build_label_map(customer_names, "Customer")
+	supplier_map = _build_label_map(supplier_names, "Supplier")
+	product_map = _build_label_map(product_names, "Product")
+	bank_map = _build_label_map(bank_names, "Bank Account")
+	cc_map = _build_label_map(cost_center_names, "Cost Center")
+
+	if anonymize_company and data.get("company"):
+		data["company"] = "The Company"
+
+	# Apply mappings
+	_apply_map(data.get("top_customers", []), customer_map, ["customer_name", "customer"])
+	_apply_map(data.get("ar_aging", []), customer_map, ["customer"])
+	_apply_map(data.get("sales_returns", []), customer_map, ["customer_name"])
+
+	_apply_map(data.get("top_suppliers", []), supplier_map, ["supplier_name", "supplier"])
+	_apply_map(data.get("ap_aging", []), supplier_map, ["supplier"])
+	_apply_map(data.get("purchase_returns", []), supplier_map, ["supplier_name"])
+	if dp.get("items"):
+		_apply_map(dp["items"], supplier_map, ["supplier"])
+
+	_apply_map(data.get("top_products", []), product_map, ["item_name", "item_code"])
+	_apply_map(data.get("stock_movement", []), product_map, ["item_name", "item_code"])
+	_apply_map(data.get("stock_ageing", []), product_map, ["item_name", "item_code"])
+	if it.get("items"):
+		_apply_map(it["items"], product_map, ["item_name", "item_code"])
+
+	_apply_map(data.get("bank_balances", []), bank_map, ["account_name", "account"])
+
+	if ccpl.get("items"):
+		_apply_map(ccpl["items"], cc_map, ["cost_center"])
+
+	# Anonymize payment reconciliation party names
+	pr = data.get("payment_reconciliation") or {}
+	if pr.get("items"):
+		party_map = {}
+		party_map.update(customer_map)
+		party_map.update(supplier_map)
+		_apply_map(pr["items"], party_map, ["party_name", "party"])
+
+	mappings = {
+		"customers": customer_map,
+		"suppliers": supplier_map,
+		"products": product_map,
+		"banks": bank_map,
+		"cost_centers": cc_map,
+	}
+
+	return data, mappings
+
+
+def _build_label_map(names, prefix):
+	"""Build a mapping from real names to generic labels like 'Customer A', 'Supplier 1'."""
+	mapping = {}
+	for i, name in enumerate(sorted(names)):
+		if not name:
+			continue
+		if i < 26:
+			label = f"{prefix} {string.ascii_uppercase[i]}"
+		else:
+			label = f"{prefix} {string.ascii_uppercase[i // 26 - 1]}{string.ascii_uppercase[i % 26]}"
+		mapping[name] = label
+	return mapping
+
+
+def _apply_map(records, mapping, fields):
+	"""Apply a name mapping to a list of dicts."""
+	for record in (records or []):
+		for field in fields:
+			original = record.get(field)
+			if original and original in mapping:
+				record[field] = mapping[original]
+
+
+# ─── Server-Side Prompt Builder ──────────────────────────────────────────────
+
+def build_ai_prompt_server(data, lang="ar"):
+	"""Build the AI analysis prompt server-side. Port of JS build_ai_prompt()."""
+	k = data.get("kpis") or {}
+	currency = data.get("currency", "")
+	no_data = "لا تتوفر بيانات" if lang == "ar" else "No data available"
+	no_returns = "لا توجد مرتجعات" if lang == "ar" else "No returns"
+
+	def fmt(val):
+		if val is None:
+			return "0"
+		try:
+			return f"{val:,.2f}" if isinstance(val, float) else f"{val:,}"
+		except (ValueError, TypeError):
+			return str(val)
+
+	# Top customers
+	top_cust = "\n".join(
+		f"{c.get('customer_name', '')}: إيرادات {fmt(c.get('total_revenue'))} - مستحق {fmt(c.get('outstanding'))} - تحصيل {c.get('collection_rate', 0)}%"
+		for c in (data.get("top_customers") or [])[:10]
+	) or no_data
+
+	# Top products
+	top_prod = "\n".join(
+		f"{p.get('item_name', '')}: كمية {fmt(p.get('total_qty'))} - إيرادات {fmt(p.get('total_revenue'))}"
+		for p in (data.get("top_products") or [])[:10]
+	) or no_data
+
+	# AR aging
+	ar = "\n".join(
+		f"{a.get('customer', '')}: مستحق {fmt(a.get('outstanding'))} - عمر {a.get('days_outstanding', 0)} يوم"
+		for a in (data.get("ar_aging") or [])[:10]
+	) or no_data
+
+	# AP aging
+	ap = "\n".join(
+		f"{a.get('supplier', '')}: مستحق {fmt(a.get('outstanding'))} - عمر {a.get('days_outstanding', 0)} يوم"
+		for a in (data.get("ap_aging") or [])[:10]
+	) or no_data
+
+	# Expenses
+	expenses = "\n".join(
+		f"{e.get('category_name', '')}: {fmt(e.get('amount'))}"
+		for e in (data.get("expense_breakdown") or [])[:10]
+	) or no_data
+
+	# Cash flow
+	cf = "\n".join(
+		f"{c.get('yr')}-{c.get('mn')}: مقبوضات {fmt(c.get('received'))} - مدفوعات {fmt(c.get('paid'))}"
+		for c in (data.get("cash_flow") or [])
+	) or no_data
+
+	# Balance sheet
+	balance_sheet = "\n".join(
+		f"{b.get('root_type', '')}: مدين {fmt(b.get('total_debit'))} - دائن {fmt(b.get('total_credit'))} - صافي {fmt(b.get('net_balance'))}"
+		for b in (data.get("balance_sheet") or [])
+	) or no_data
+
+	# GL vouchers
+	gl_vouchers = "\n".join(
+		f"{v.get('voucher_type', '')}: {v.get('doc_count', 0)} مستند - مدين {fmt(v.get('total_debit'))} - دائن {fmt(v.get('total_credit'))}"
+		for v in (data.get("gl_voucher_summary") or [])
+	) or no_data
+
+	# Stock vouchers
+	stock_vouchers = "\n".join(
+		f"{v.get('voucher_type', '')}: {v.get('doc_count', 0)} مستند - وارد {fmt(v.get('qty_in'))} - صادر {fmt(v.get('qty_out'))}"
+		for v in (data.get("stock_voucher_summary") or [])
+	) or no_data
+
+	# Bank balances
+	bank_balances = "\n".join(
+		f"{b.get('account_name', '')} ({b.get('account_type', '')}): {fmt(b.get('balance'))}"
+		for b in (data.get("bank_balances") or [])
+	) or no_data
+
+	# Sales returns
+	sales_returns = "\n".join(
+		f"{r.get('customer_name', '')}: {r.get('return_count', 0)} مرتجع - {fmt(r.get('return_amount'))}"
+		for r in (data.get("sales_returns") or [])
+	) or no_returns
+
+	# Purchase returns
+	purchase_returns = "\n".join(
+		f"{r.get('supplier_name', '')}: {r.get('return_count', 0)} مرتجع - {fmt(r.get('return_amount'))}"
+		for r in (data.get("purchase_returns") or [])
+	) or no_returns
+
+	# Stock movement
+	stock_movement = "\n".join(
+		f"{s.get('item_name', '')}: وارد {fmt(s.get('qty_in'))} - صادر {fmt(s.get('qty_out'))} - تغير القيمة {fmt(s.get('value_change'))}"
+		for s in (data.get("stock_movement") or [])[:10]
+	) or no_data
+
+	# Custom doctypes
+	custom_dt = "\n".join(
+		f"{d.get('doctype', '')} ({d.get('module', '')}{' - مخصص' if d.get('is_custom') else ''}): {d.get('doc_count', 0)} مستند"
+		for d in ((data.get("custom_doctypes_analysis") or {}).get("submittable_doctypes") or [])
+	) or no_data
+
+	# Installed apps
+	installed_apps = "\n".join(
+		f"{a.get('app', '')}: {a.get('version', 'N/A')}"
+		for a in (data.get("installed_apps") or [])
+	) or no_data
+
+	# Working capital metrics
+	wc = data.get("working_capital_metrics")
+	if wc:
+		wc_text = (
+			f"- DSO (أيام التحصيل): {wc.get('dso', 0)} يوم\n"
+			f"- DPO (أيام السداد): {wc.get('dpo', 0)} يوم\n"
+			f"- DIO (أيام المخزون): {wc.get('dio', 0)} يوم\n"
+			f"- CCC (دورة التحويل النقدي): {wc.get('ccc', 0)} يوم\n"
+			f"- نسبة التداول: {wc.get('current_ratio', 0)}\n"
+			f"- نسبة السيولة السريعة: {wc.get('quick_ratio', 0)}\n"
+			f"- نسبة النقد: {wc.get('cash_ratio', 0)}\n"
+			f"- العائد على حقوق الملكية (ROE): {wc.get('roe', 0)}%\n"
+			f"- تحليل DuPont: هامش {wc.get('profit_margin', 0)}% × دوران الأصول {wc.get('asset_turnover', 0)} × الرافعة المالية {wc.get('equity_multiplier', 0)}\n"
+			f"- رأس المال العامل: {fmt(wc.get('working_capital'))}"
+		)
+	else:
+		wc_text = no_data
+
+	# Year-over-year
+	yoy = data.get("yoy_growth")
+	if yoy:
+		yoy_text = (
+			f"- نمو الإيرادات: {yoy.get('revenue_growth', 0)}% (الحالي: {fmt(yoy.get('current_revenue'))} / السابق: {fmt(yoy.get('prior_revenue'))})\n"
+			f"- نمو مجمل الربح: {yoy.get('gross_growth', 0)}%\n"
+			f"- نمو المصروفات: {yoy.get('expense_growth', 0)}%\n"
+			f"- نمو صافي الربح: {yoy.get('net_growth', 0)}% (الحالي: {fmt(yoy.get('current_net'))} / السابق: {fmt(yoy.get('prior_net'))})\n"
+			f"- نمو عدد الفواتير: {yoy.get('invoice_growth', 0)}%"
+		)
+	else:
+		yoy_text = no_data
+
+	# Benford's Law
+	bf = data.get("benfords_law")
+	if bf:
+		sales_bf = bf.get("sales") or {}
+		purchases_bf = bf.get("purchases") or {}
+		bf_text = (
+			f"- فواتير المبيعات: χ² = {sales_bf.get('chi_square', 0)} "
+			f"({'يتوافق مع بنفورد' if sales_bf.get('conforms') else 'انحراف مشبوه'}) — مستوى الخطر: {sales_bf.get('risk', 'N/A')}\n"
+			f"- فواتير المشتريات: χ² = {purchases_bf.get('chi_square', 0)} "
+			f"({'يتوافق مع بنفورد' if purchases_bf.get('conforms') else 'انحراف مشبوه'}) — مستوى الخطر: {purchases_bf.get('risk', 'N/A')}"
+		)
+	else:
+		bf_text = no_data
+
+	# Duplicate payments
+	dp = data.get("duplicate_payments")
+	if dp:
+		dp_text = (
+			f"- عدد المدفوعات المكررة المشبوهة: {dp.get('count', 0)}\n"
+			f"- إجمالي المبلغ المعرض للخطر: {fmt(dp.get('total_risk_amount'))}\n"
+			f"- مستوى الخطر: {dp.get('risk', 'N/A')}"
+		)
+	else:
+		dp_text = no_data
+
+	# Concentration risk
+	cr = data.get("concentration_risk")
+	if cr:
+		cr_text = (
+			f"- أعلى عميل يمثل: {cr.get('top1_cust_pct', 0)}% من الإيرادات (خطر: {cr.get('cust_risk', 'N/A')})\n"
+			f"- أعلى 5 عملاء يمثلون: {cr.get('top5_cust_pct', 0)}%\n"
+			f"- أعلى مورد يمثل: {cr.get('top1_supp_pct', 0)}% من المشتريات (خطر: {cr.get('supp_risk', 'N/A')})\n"
+			f"- أعلى 5 موردين يمثلون: {cr.get('top5_supp_pct', 0)}%"
+		)
+	else:
+		cr_text = no_data
+
+	# Weekend transactions
+	wt = data.get("weekend_transactions")
+	if wt:
+		wt_text = (
+			f"- إجمالي معاملات عطلة نهاية الأسبوع: {wt.get('total_weekend', 0)}\n"
+			f"- إجمالي معاملات نهاية الشهر: {wt.get('total_eom', 0)}\n"
+			f"- مستوى الخطر: {wt.get('risk', 'N/A')}"
+		)
+	else:
+		wt_text = no_data
+
+	# Payment reconciliation
+	pr = data.get("payment_reconciliation")
+	if pr:
+		pr_text = (
+			f"- إجمالي المدفوعات غير المسواة: {fmt(pr.get('total_unallocated'))}\n"
+			f"- عدد القيود غير المسواة: {pr.get('total_entries', 0)}\n"
+			f"- عدد الأطراف: {pr.get('party_count', 0)}\n"
+			f"- مستوى الخطر: {pr.get('risk', 'N/A')}"
+		)
+	else:
+		pr_text = no_data
+
+	# Cost center P&L
+	ccpl = data.get("cost_center_pl")
+	if ccpl and ccpl.get("items"):
+		ccpl_text = "\n".join(
+			f"{c.get('cost_center', '')}: إيرادات {fmt(c.get('income'))} - مصروفات {fmt(c.get('expenses'))} - صافي {fmt(c.get('net_profit'))} (هامش {c.get('margin', 0)}%)"
+			for c in ccpl["items"]
+		)
+	else:
+		ccpl_text = no_data
+
+	# Depreciation audit
+	dep = data.get("depreciation_audit")
+	if dep:
+		dep_text = (
+			f"- إجمالي الشراء: {fmt(dep.get('total_purchase'))}\n"
+			f"- القيمة الحالية: {fmt(dep.get('total_current'))}\n"
+			f"- نسبة الإهلاك: {dep.get('depreciation_rate', 0)}%\n"
+			f"- إهلاك الفترة: {fmt(dep.get('period_depreciation'))}\n"
+			f"- حالات شاذة: {len(dep.get('anomalies') or [])}"
+		)
+	else:
+		dep_text = no_data
+
+	# Aging trend
+	at = data.get("aging_trend")
+	if at and at.get("months"):
+		at_text = "\n".join(
+			f"{m.get('month', '')}: 0-30={fmt(m.get('bucket_0_30'))} | 31-60={fmt(m.get('bucket_31_60'))} | 61-90={fmt(m.get('bucket_61_90'))} | 90+={fmt(m.get('bucket_90_plus'))} | total={fmt(m.get('total'))}"
+			for m in at["months"]
+		)
+	else:
+		at_text = no_data
+
+	# Ratio trend
+	rt = data.get("ratio_trend")
+	if rt and rt.get("months"):
+		rt_text = "\n".join(
+			f"{m.get('month', '')}: DSO={m.get('dso', 0)} DPO={m.get('dpo', 0)} CR={m.get('current_ratio', 0)} NM={m.get('net_margin', 0)}% GM={m.get('gross_margin', 0)}%"
+			for m in rt["months"]
+		)
+	else:
+		rt_text = no_data
+
+	# Build intro and requirements based on language
+	is_ar = lang == "ar"
+
+	if is_ar:
+		intro = (
+			f'أنت محلل مالي ومدقق حسابات خبير بمعايير التدقيق الدولية (ISA). '
+			f'حلل البيانات المالية التالية لشركة "{data.get("company", "")}" '
+			f'للفترة من {data.get("from_date", "")} إلى {data.get("to_date", "")} '
+			f'وقدم تقريراً تدقيقياً شاملاً باللغة العربية.'
+		)
+		requirements = """## المطلوب — تقرير تدقيق شامل:
+1. **تقييم الصحة المالية** (درجة من 100 مع تفسير مفصل)
+2. **تحليل DuPont وعائد حقوق الملكية**: تفكيك ROE إلى مكوناته وتحليل نقاط القوة والضعف
+3. **تحليل دورة التحويل النقدي (CCC)**: تقييم DSO/DPO/DIO وتأثيرها على السيولة
+4. **تحليل المخاطر والاحتيال**: بناءً على نتائج قانون بنفورد، المدفوعات المكررة، ومعاملات العطلات
+5. **تحليل تركز العملاء والموردين**: مخاطر الاعتماد على عدد محدود
+6. **المقارنة السنوية**: تقييم اتجاهات النمو أو الانكماش
+7. **تحليل التدفق النقدي**: هل الشركة قادرة على تغطية التزاماتها؟
+8. **تحليل المخزون**: مخزون راكد، دوران بطيء، مشاكل إدارة
+9. **تحليل المرتجعات**: نسب المرتجعات وتأثيرها على الربحية
+10. **نقاط القوة والضعف**: تحليل SWOT مالي مختصر
+11. **توصيات عملية**: 10 توصيات قابلة للتنفيذ مرتبة حسب الأولوية
+12. **علامات الإنذار المبكر**: أي مؤشرات تدل على مشاكل مستقبلية"""
+		lang_instruction = "قدم التقرير منظماً بعناوين واضحة ونقاط محددة باللغة العربية. استخدم أرقام ونسب محددة من البيانات المقدمة."
+	else:
+		intro = (
+			f'You are an expert financial analyst and auditor following International Standards on Auditing (ISA). '
+			f'Analyze the following financial data for company "{data.get("company", "")}" '
+			f'for the period from {data.get("from_date", "")} to {data.get("to_date", "")} '
+			f'and provide a comprehensive audit report in English.'
+		)
+		requirements = """## Required — Comprehensive Audit Report:
+1. **Financial Health Assessment** (score out of 100 with detailed explanation)
+2. **DuPont Analysis & ROE**: Break down ROE into components and analyze strengths/weaknesses
+3. **Cash Conversion Cycle (CCC) Analysis**: Evaluate DSO/DPO/DIO and their impact on liquidity
+4. **Risk & Fraud Analysis**: Based on Benford's Law results, duplicate payments, and weekend transactions
+5. **Customer & Supplier Concentration Analysis**: Risks of dependency on limited parties
+6. **Year-over-Year Comparison**: Evaluate growth or contraction trends
+7. **Cash Flow Analysis**: Can the company cover its obligations?
+8. **Inventory Analysis**: Slow-moving stock, slow turnover, management issues
+9. **Returns Analysis**: Return rates and their impact on profitability
+10. **Strengths & Weaknesses**: Brief financial SWOT analysis
+11. **Actionable Recommendations**: 10 prioritized actionable recommendations
+12. **Early Warning Signs**: Any indicators pointing to future problems"""
+		lang_instruction = "Present the report organized with clear headings and specific points in English. Use specific numbers and ratios from the provided data."
+
+	prompt = f"""{intro}
+
+## Key Financial Indicators:
+- Revenue: {fmt(k.get('revenue'))} {currency}
+- COGS: {fmt(k.get('cogs'))} {currency}
+- Gross Profit: {fmt(k.get('gross_profit'))} {currency} ({k.get('gross_margin', 0)}%)
+- Total Expenses: {fmt(k.get('total_expenses'))} {currency}
+- Net Profit: {fmt(k.get('net_profit'))} {currency} ({k.get('net_margin', 0)}%)
+- Accounts Receivable: {fmt(k.get('ar_outstanding'))} {currency}
+- Accounts Payable: {fmt(k.get('ap_outstanding'))} {currency}
+- Cash Balance: {fmt(k.get('cash_balance'))} {currency}
+- Inventory Value: {fmt(k.get('inventory_value'))} {currency}
+- Sales Invoices: {k.get('si_count', 0)}
+- Purchase Invoices: {k.get('pi_count', 0)}
+
+## Balance Sheet Summary:
+{balance_sheet}
+
+## Advanced Financial Ratios (DuPont / CCC):
+{wc_text}
+
+## Year-over-Year Comparison:
+{yoy_text}
+
+## Benford's Law Analysis (Fraud Detection):
+{bf_text}
+
+## Duplicate Payment Detection:
+{dp_text}
+
+## Customer & Supplier Concentration:
+{cr_text}
+
+## Weekend & Month-End Transactions:
+{wt_text}
+
+## GL Entry Types:
+{gl_vouchers}
+
+## Stock Voucher Types:
+{stock_vouchers}
+
+## Bank & Cash Balances:
+{bank_balances}
+
+## Top 10 Customers:
+{top_cust}
+
+## Top 10 Products:
+{top_prod}
+
+## Sales Returns:
+{sales_returns}
+
+## Purchase Returns:
+{purchase_returns}
+
+## AR Aging:
+{ar}
+
+## AP Aging:
+{ap}
+
+## Expense Distribution:
+{expenses}
+
+## Monthly Cash Flow:
+{cf}
+
+## Top Stock Movements:
+{stock_movement}
+
+## Documents & Custom Doctypes:
+{custom_dt}
+
+## Installed Apps:
+{installed_apps}
+
+## Payment Reconciliation (Unreconciled Payments):
+{pr_text}
+
+## Cost Center Profitability:
+{ccpl_text}
+
+## Depreciation Audit:
+{dep_text}
+
+## AR Aging Trend (Monthly Buckets):
+{at_text}
+
+## Monthly Financial Ratio Trend:
+{rt_text}
+
+{requirements}
+
+{lang_instruction}"""
+
+	return prompt

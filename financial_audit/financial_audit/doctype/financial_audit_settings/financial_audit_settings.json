@@ -1,0 +1,114 @@
+{
+	"actions": [],
+	"creation": "2026-02-23 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"enabled",
+		"section_ai_config",
+		"ai_provider",
+		"api_key",
+		"model_name",
+		"column_break_config",
+		"custom_endpoint",
+		"max_requests_per_day",
+		"section_privacy",
+		"anonymize_data",
+		"anonymize_company"
+	],
+	"fields": [
+		{
+			"default": "0",
+			"fieldname": "enabled",
+			"fieldtype": "Check",
+			"label": "Enable AI Analysis"
+		},
+		{
+			"depends_on": "enabled",
+			"fieldname": "section_ai_config",
+			"fieldtype": "Section Break",
+			"label": "AI Configuration"
+		},
+		{
+			"default": "Puter (Free)",
+			"fieldname": "ai_provider",
+			"fieldtype": "Select",
+			"label": "AI Provider",
+			"options": "Puter (Free)\nOpenAI\nCustom Endpoint",
+			"reqd": 1
+		},
+		{
+			"depends_on": "eval:doc.ai_provider !== 'Puter (Free)'",
+			"fieldname": "api_key",
+			"fieldtype": "Password",
+			"label": "API Key"
+		},
+		{
+			"default": "gpt-4o-mini",
+			"fieldname": "model_name",
+			"fieldtype": "Data",
+			"label": "Model Name"
+		},
+		{
+			"fieldname": "column_break_config",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.ai_provider === 'Custom Endpoint'",
+			"fieldname": "custom_endpoint",
+			"fieldtype": "Data",
+			"label": "Custom API Endpoint"
+		},
+		{
+			"default": "20",
+			"fieldname": "max_requests_per_day",
+			"fieldtype": "Int",
+			"label": "Max Requests Per User Per Day"
+		},
+		{
+			"depends_on": "enabled",
+			"fieldname": "section_privacy",
+			"fieldtype": "Section Break",
+			"label": "Data Privacy"
+		},
+		{
+			"default": "1",
+			"description": "Replace customer, supplier, product, and account names with generic labels before sending to AI",
+			"fieldname": "anonymize_data",
+			"fieldtype": "Check",
+			"label": "Anonymize Data Before AI Analysis"
+		},
+		{
+			"default": "1",
+			"depends_on": "anonymize_data",
+			"description": "Also replace the company name with a generic label",
+			"fieldname": "anonymize_company",
+			"fieldtype": "Check",
+			"label": "Anonymize Company Name"
+		}
+	],
+	"issingle": 1,
+	"links": [],
+	"modified": "2026-02-23 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Financial Audit",
+	"name": "Financial Audit Settings",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"read": 1,
+			"role": "System Manager",
+			"write": 1
+		},
+		{
+			"create": 1,
+			"read": 1,
+			"role": "Accounts Manager",
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": []
+}

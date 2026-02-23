@@ -486,7 +486,6 @@ class FinancialAuditDashboard {
 		this.load_layout_prefs();
 
 		this.setup_page();
-		this.load_puter_js();
 		this.load_echarts();
 		this.render_filters();
 		this.load_data();
@@ -1901,299 +1900,68 @@ class FinancialAuditDashboard {
 			return;
 		}
 
-		if (!window.puter) {
-			frappe.msgprint(this.t('ai_loading'));
-			return;
-		}
-
 		this.$ai.slideDown(200, () => {
 			$('html, body').animate({ scrollTop: this.$ai.offset().top - 60 }, 300);
 		});
 		this.$ai_body.html(`<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> ${this.t('ai_analyzing')}</div>`);
 
 		try {
-			const prompt = this.build_ai_prompt();
-			const response = await puter.ai.chat(prompt, { model: 'gpt-4o-mini' });
-			const text = typeof response === 'string' ? response
-				: (response?.message?.content?.[0]?.text || response?.message?.content || response?.toString() || this.t('ai_no_response'));
-			this.show_ai_results(text);
+			const me = this;
+			frappe.call({
+				method: 'financial_audit.financial_audit.page.financial_audit.financial_audit.get_ai_analysis',
+				args: { filters: this.filters, lang: this.lang },
+				callback: async function(r) {
+					if (!r.message) {
+						me.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${me.t('ai_no_response')}</p></div>`);
+						return;
+					}
+
+					const result = r.message;
+
+					if (result.provider === 'Puter') {
+						// Puter mode: prompt built server-side (anonymized), call Puter client-side
+						me.load_puter_js();
+						await me._wait_for_puter();
+						try {
+							const response = await puter.ai.chat(result.prompt, { model: 'gpt-4o-mini' });
+							const text = typeof response === 'string' ? response
+								: (response?.message?.content?.[0]?.text || response?.message?.content || response?.toString() || me.t('ai_no_response'));
+							me.show_ai_results(text);
+						} catch (e) {
+							me.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${me.t('ai_error')}: ${e.message || e}</p></div>`);
+						}
+					} else {
+						// OpenAI/Custom: response already from backend
+						if (result.analysis) {
+							me.show_ai_results(result.analysis);
+						} else {
+							me.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${me.t('ai_no_response')}</p></div>`);
+						}
+					}
+				},
+				error: function(err) {
+					me.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${me.t('ai_error')}: ${err.message || err}</p></div>`);
+				}
+			});
 		} catch (e) {
 			this.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${this.t('ai_error')}: ${e.message || e}</p></div>`);
 		}
 	}
 
+	_wait_for_puter(timeout = 10000) {
+		return new Promise((resolve, reject) => {
+			if (window.puter) return resolve();
+			const start = Date.now();
+			const check = setInterval(() => {
+				if (window.puter) { clearInterval(check); resolve(); }
+				else if (Date.now() - start > timeout) { clearInterval(check); reject(new Error('Puter AI engine failed to load')); }
+			}, 200);
+		});
+	}
+
 	clear_ai_analysis() {
 		this.$ai.slideUp(200);
 		this.$ai_body.empty();
-	}
-
-	build_ai_prompt() {
-		const k = this.data.kpis;
-		const top_cust = (this.data.top_customers || []).slice(0, 10).map(c =>
-			`${c.customer_name}: إيرادات ${c.total_revenue?.toLocaleString()} - مستحق ${c.outstanding?.toLocaleString()} - تحصيل ${c.collection_rate}%`
-		).join('\n');
-
-		const top_prod = (this.data.top_products || []).slice(0, 10).map(p =>
-			`${p.item_name}: كمية ${p.total_qty?.toLocaleString()} - إيرادات ${p.total_revenue?.toLocaleString()}`
-		).join('\n');
-
-		const ar = (this.data.ar_aging || []).slice(0, 10).map(a =>
-			`${a.customer}: مستحق ${a.outstanding?.toLocaleString()} - عمر ${a.days_outstanding} يوم`
-		).join('\n');
-
-		const ap = (this.data.ap_aging || []).slice(0, 10).map(a =>
-			`${a.supplier}: مستحق ${a.outstanding?.toLocaleString()} - عمر ${a.days_outstanding} يوم`
-		).join('\n');
-
-		const expenses = (this.data.expense_breakdown || []).slice(0, 10).map(e =>
-			`${e.category_name}: ${e.amount?.toLocaleString()}`
-		).join('\n');
-
-		const cf = (this.data.cash_flow || []).map(c =>
-			`${c.yr}-${c.mn}: مقبوضات ${c.received?.toLocaleString()} - مدفوعات ${c.paid?.toLocaleString()}`
-		).join('\n');
-
-		const balance_sheet = (this.data.balance_sheet || []).map(b =>
-			`${b.root_type}: مدين ${b.total_debit?.toLocaleString()} - دائن ${b.total_credit?.toLocaleString()} - صافي ${b.net_balance?.toLocaleString()}`
-		).join('\n');
-
-		const gl_vouchers = (this.data.gl_voucher_summary || []).map(v =>
-			`${v.voucher_type}: ${v.doc_count} مستند - مدين ${v.total_debit?.toLocaleString()} - دائن ${v.total_credit?.toLocaleString()}`
-		).join('\n');
-
-		const stock_vouchers = (this.data.stock_voucher_summary || []).map(v =>
-			`${v.voucher_type}: ${v.doc_count} مستند - وارد ${v.qty_in?.toLocaleString()} - صادر ${v.qty_out?.toLocaleString()}`
-		).join('\n');
-
-		const bank_balances = (this.data.bank_balances || []).map(b =>
-			`${b.account_name} (${b.account_type}): ${b.balance?.toLocaleString()}`
-		).join('\n');
-
-		const sales_returns = (this.data.sales_returns || []).map(r =>
-			`${r.customer_name}: ${r.return_count} مرتجع - ${r.return_amount?.toLocaleString()}`
-		).join('\n');
-
-		const purchase_returns = (this.data.purchase_returns || []).map(r =>
-			`${r.supplier_name}: ${r.return_count} مرتجع - ${r.return_amount?.toLocaleString()}`
-		).join('\n');
-
-		const stock_movement = (this.data.stock_movement || []).slice(0, 10).map(s =>
-			`${s.item_name}: وارد ${s.qty_in?.toLocaleString()} - صادر ${s.qty_out?.toLocaleString()} - تغير القيمة ${s.value_change?.toLocaleString()}`
-		).join('\n');
-
-		const custom_dt = (this.data.custom_doctypes_analysis?.submittable_doctypes || []).map(d =>
-			`${d.doctype} (${d.module}${d.is_custom ? ' - مخصص' : ''}): ${d.doc_count} مستند`
-		).join('\n');
-
-		const installed_apps = (this.data.installed_apps || []).map(a =>
-			`${a.app}: ${a.version || 'N/A'}`
-		).join('\n');
-
-		// Advanced audit analytics data
-		const wc = this.data.working_capital_metrics;
-		const wc_text = wc ? `- DSO (أيام التحصيل): ${wc.dso} يوم
-- DPO (أيام السداد): ${wc.dpo} يوم
-- DIO (أيام المخزون): ${wc.dio} يوم
-- CCC (دورة التحويل النقدي): ${wc.ccc} يوم
-- نسبة التداول: ${wc.current_ratio}
-- نسبة السيولة السريعة: ${wc.quick_ratio}
-- نسبة النقد: ${wc.cash_ratio}
-- العائد على حقوق الملكية (ROE): ${wc.roe}%
-- تحليل DuPont: هامش ${wc.profit_margin}% × دوران الأصول ${wc.asset_turnover} × الرافعة المالية ${wc.equity_multiplier}
-- رأس المال العامل: ${wc.working_capital?.toLocaleString()}` : 'لا تتوفر بيانات';
-
-		const yoy = this.data.yoy_growth;
-		const yoy_text = yoy ? `- نمو الإيرادات: ${yoy.revenue_growth}% (الحالي: ${yoy.current_revenue?.toLocaleString()} / السابق: ${yoy.prior_revenue?.toLocaleString()})
-- نمو مجمل الربح: ${yoy.gross_growth}%
-- نمو المصروفات: ${yoy.expense_growth}%
-- نمو صافي الربح: ${yoy.net_growth}% (الحالي: ${yoy.current_net?.toLocaleString()} / السابق: ${yoy.prior_net?.toLocaleString()})
-- نمو عدد الفواتير: ${yoy.invoice_growth}%` : 'لا تتوفر بيانات';
-
-		const bf = this.data.benfords_law;
-		const bf_text = bf ? `- فواتير المبيعات: χ² = ${bf.sales?.chi_square} (${bf.sales?.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}) — مستوى الخطر: ${bf.sales?.risk}
-- فواتير المشتريات: χ² = ${bf.purchases?.chi_square} (${bf.purchases?.conforms ? 'يتوافق مع بنفورد' : 'انحراف مشبوه'}) — مستوى الخطر: ${bf.purchases?.risk}` : 'لا تتوفر بيانات';
-
-		const dp = this.data.duplicate_payments;
-		const dp_text = dp ? `- عدد المدفوعات المكررة المشبوهة: ${dp.count}
-- إجمالي المبلغ المعرض للخطر: ${dp.total_risk_amount?.toLocaleString()}
-- مستوى الخطر: ${dp.risk}` : 'لا تتوفر بيانات';
-
-		const cr = this.data.concentration_risk;
-		const cr_text = cr ? `- أعلى عميل يمثل: ${cr.top1_cust_pct}% من الإيرادات (خطر: ${cr.cust_risk})
-- أعلى 5 عملاء يمثلون: ${cr.top5_cust_pct}%
-- أعلى مورد يمثل: ${cr.top1_supp_pct}% من المشتريات (خطر: ${cr.supp_risk})
-- أعلى 5 موردين يمثلون: ${cr.top5_supp_pct}%` : 'لا تتوفر بيانات';
-
-		const wt = this.data.weekend_transactions;
-		const wt_text = wt ? `- إجمالي معاملات عطلة نهاية الأسبوع: ${wt.total_weekend}
-- إجمالي معاملات نهاية الشهر: ${wt.total_eom}
-- مستوى الخطر: ${wt.risk}` : 'لا تتوفر بيانات';
-
-		// New advanced analytics data for AI
-		const pr = this.data.payment_reconciliation;
-		const pr_text = pr ? `- إجمالي المدفوعات غير المسواة: ${pr.total_unallocated?.toLocaleString()}
-- عدد القيود غير المسواة: ${pr.total_entries}
-- عدد الأطراف: ${pr.party_count}
-- مستوى الخطر: ${pr.risk}` : 'لا تتوفر بيانات';
-
-		const ccpl = this.data.cost_center_pl;
-		const ccpl_text = ccpl ? (ccpl.items || []).map(c =>
-			`${c.cost_center}: إيرادات ${c.income?.toLocaleString()} - مصروفات ${c.expenses?.toLocaleString()} - صافي ${c.net_profit?.toLocaleString()} (هامش ${c.margin}%)`
-		).join('\n') : 'لا تتوفر بيانات';
-
-		const dep = this.data.depreciation_audit;
-		const dep_text = dep ? `- إجمالي الشراء: ${dep.total_purchase?.toLocaleString()}
-- القيمة الحالية: ${dep.total_current?.toLocaleString()}
-- نسبة الإهلاك: ${dep.depreciation_rate}%
-- إهلاك الفترة: ${dep.period_depreciation?.toLocaleString()}
-- حالات شاذة: ${dep.anomalies?.length || 0}` : 'لا تتوفر بيانات';
-
-		const at = this.data.aging_trend;
-		const at_text = at ? (at.months || []).map(m =>
-			`${m.month}: 0-30=${m.bucket_0_30?.toLocaleString()} | 31-60=${m.bucket_31_60?.toLocaleString()} | 61-90=${m.bucket_61_90?.toLocaleString()} | 90+=${m.bucket_90_plus?.toLocaleString()} | total=${m.total?.toLocaleString()}`
-		).join('\n') : 'لا تتوفر بيانات';
-
-		const rt = this.data.ratio_trend;
-		const rt_text = rt ? (rt.months || []).map(m =>
-			`${m.month}: DSO=${m.dso} DPO=${m.dpo} CR=${m.current_ratio} NM=${m.net_margin}% GM=${m.gross_margin}%`
-		).join('\n') : 'لا تتوفر بيانات';
-
-		const is_ar = this.lang === 'ar';
-		const lang_instruction = is_ar
-			? 'قدم التقرير منظماً بعناوين واضحة ونقاط محددة باللغة العربية. استخدم أرقام ونسب محددة من البيانات المقدمة.'
-			: 'Present the report organized with clear headings and specific points in English. Use specific numbers and ratios from the provided data.';
-
-		const intro = is_ar
-			? `أنت محلل مالي ومدقق حسابات خبير بمعايير التدقيق الدولية (ISA). حلل البيانات المالية التالية لشركة "${this.data.company}" للفترة من ${this.data.from_date} إلى ${this.data.to_date} وقدم تقريراً تدقيقياً شاملاً باللغة العربية.`
-			: `You are an expert financial analyst and auditor following International Standards on Auditing (ISA). Analyze the following financial data for company "${this.data.company}" for the period from ${this.data.from_date} to ${this.data.to_date} and provide a comprehensive audit report in English.`;
-
-		const requirements = is_ar
-			? `## المطلوب — تقرير تدقيق شامل:
-1. **تقييم الصحة المالية** (درجة من 100 مع تفسير مفصل)
-2. **تحليل DuPont وعائد حقوق الملكية**: تفكيك ROE إلى مكوناته وتحليل نقاط القوة والضعف
-3. **تحليل دورة التحويل النقدي (CCC)**: تقييم DSO/DPO/DIO وتأثيرها على السيولة
-4. **تحليل المخاطر والاحتيال**: بناءً على نتائج قانون بنفورد، المدفوعات المكررة، ومعاملات العطلات
-5. **تحليل تركز العملاء والموردين**: مخاطر الاعتماد على عدد محدود
-6. **المقارنة السنوية**: تقييم اتجاهات النمو أو الانكماش
-7. **تحليل التدفق النقدي**: هل الشركة قادرة على تغطية التزاماتها؟
-8. **تحليل المخزون**: مخزون راكد، دوران بطيء، مشاكل إدارة
-9. **تحليل المرتجعات**: نسب المرتجعات وتأثيرها على الربحية
-10. **نقاط القوة والضعف**: تحليل SWOT مالي مختصر
-11. **توصيات عملية**: 10 توصيات قابلة للتنفيذ مرتبة حسب الأولوية
-12. **علامات الإنذار المبكر**: أي مؤشرات تدل على مشاكل مستقبلية`
-			: `## Required — Comprehensive Audit Report:
-1. **Financial Health Assessment** (score out of 100 with detailed explanation)
-2. **DuPont Analysis & ROE**: Break down ROE into components and analyze strengths/weaknesses
-3. **Cash Conversion Cycle (CCC) Analysis**: Evaluate DSO/DPO/DIO and their impact on liquidity
-4. **Risk & Fraud Analysis**: Based on Benford's Law results, duplicate payments, and weekend transactions
-5. **Customer & Supplier Concentration Analysis**: Risks of dependency on limited parties
-6. **Year-over-Year Comparison**: Evaluate growth or contraction trends
-7. **Cash Flow Analysis**: Can the company cover its obligations?
-8. **Inventory Analysis**: Slow-moving stock, slow turnover, management issues
-9. **Returns Analysis**: Return rates and their impact on profitability
-10. **Strengths & Weaknesses**: Brief financial SWOT analysis
-11. **Actionable Recommendations**: 10 prioritized actionable recommendations
-12. **Early Warning Signs**: Any indicators pointing to future problems`;
-
-		const no_returns = is_ar ? 'لا توجد مرتجعات' : 'No returns';
-		const no_data_text = is_ar ? 'لا تتوفر بيانات' : 'No data available';
-
-		return `${intro}
-
-## Key Financial Indicators:
-- Revenue: ${k.revenue?.toLocaleString()} ${this.currency}
-- COGS: ${k.cogs?.toLocaleString()} ${this.currency}
-- Gross Profit: ${k.gross_profit?.toLocaleString()} ${this.currency} (${k.gross_margin}%)
-- Total Expenses: ${k.total_expenses?.toLocaleString()} ${this.currency}
-- Net Profit: ${k.net_profit?.toLocaleString()} ${this.currency} (${k.net_margin}%)
-- Accounts Receivable: ${k.ar_outstanding?.toLocaleString()} ${this.currency}
-- Accounts Payable: ${k.ap_outstanding?.toLocaleString()} ${this.currency}
-- Cash Balance: ${k.cash_balance?.toLocaleString()} ${this.currency}
-- Inventory Value: ${k.inventory_value?.toLocaleString()} ${this.currency}
-- Sales Invoices: ${k.si_count}
-- Purchase Invoices: ${k.pi_count}
-
-## Balance Sheet Summary:
-${balance_sheet}
-
-## Advanced Financial Ratios (DuPont / CCC):
-${wc_text || no_data_text}
-
-## Year-over-Year Comparison:
-${yoy_text || no_data_text}
-
-## Benford's Law Analysis (Fraud Detection):
-${bf_text || no_data_text}
-
-## Duplicate Payment Detection:
-${dp_text || no_data_text}
-
-## Customer & Supplier Concentration:
-${cr_text || no_data_text}
-
-## Weekend & Month-End Transactions:
-${wt_text || no_data_text}
-
-## GL Entry Types:
-${gl_vouchers}
-
-## Stock Voucher Types:
-${stock_vouchers}
-
-## Bank & Cash Balances:
-${bank_balances}
-
-## Top 10 Customers:
-${top_cust}
-
-## Top 10 Products:
-${top_prod}
-
-## Sales Returns:
-${sales_returns || no_returns}
-
-## Purchase Returns:
-${purchase_returns || no_returns}
-
-## AR Aging:
-${ar}
-
-## AP Aging:
-${ap}
-
-## Expense Distribution:
-${expenses}
-
-## Monthly Cash Flow:
-${cf}
-
-## Top Stock Movements:
-${stock_movement}
-
-## Documents & Custom Doctypes:
-${custom_dt}
-
-## Installed Apps:
-${installed_apps}
-
-## Payment Reconciliation (Unreconciled Payments):
-${pr_text || no_data_text}
-
-## Cost Center Profitability:
-${ccpl_text || no_data_text}
-
-## Depreciation Audit:
-${dep_text || no_data_text}
-
-## AR Aging Trend (Monthly Buckets):
-${at_text || no_data_text}
-
-## Monthly Financial Ratio Trend:
-${rt_text || no_data_text}
-
-${requirements}
-
-${lang_instruction}`;
 	}
 
 	show_ai_results(text) {

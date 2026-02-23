@@ -25,7 +25,7 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 - **12 KPI Cards** with real-time financial metrics
 - **5 Interactive ECharts** (monthly trends, daily sales, expense breakdown, cash flow, Benford's Law)
 - **20+ Data Tables** with drill-down links
-- **Free AI Analysis** via Puter.js — no API keys required
+- **Secure AI Analysis** — 3 providers (Puter free, OpenAI, Custom/Self-hosted) with server-side anonymization
 - **PDF Export** — one-click print-optimized audit reports
 - **Custom Dashboard Layouts** — show/hide sections with saved preferences
 - **Bilingual Interface** — Arabic (RTL) and English (LTR) based on user language
@@ -83,7 +83,7 @@ Financial Audit Dashboard is a **universal, plug-and-play** auditing tool that w
 | Duplicate Payments | Automatic detection of suspicious duplicate payments |
 | Concentration Risk | Customer & supplier dependency analysis |
 | Weekend Transactions | Unusual timing pattern detection |
-| AI Analysis | Comprehensive financial report powered by free AI |
+| AI Analysis | Secure AI report with anonymization (Puter/OpenAI/Custom) |
 | PDF Export | One-click print-optimized full audit report |
 | Custom Layout | Show/hide any section with persistent preferences |
 
@@ -137,8 +137,7 @@ Required roles: `System Manager` or `Accounts Manager`
 
 ```
 financial_audit/
-├── setup.py                          # Package configuration
-├── setup.cfg                         # Build settings
+├── pyproject.toml                    # Package configuration (flit_core)
 ├── MANIFEST.in                       # Package manifest
 ├── requirements.txt                  # Dependencies (none external)
 ├── financial_audit/
@@ -146,15 +145,18 @@ financial_audit/
 │   ├── hooks.py                      # App metadata & required_apps
 │   ├── modules.txt                   # Module registration
 │   └── financial_audit/
+│       ├── doctype/
+│       │   ├── financial_audit_settings/   # AI provider config (Single DocType)
+│       │   └── ai_audit_log/               # AI request audit trail
 │       └── page/
 │           └── financial_audit/
 │               ├── financial_audit.json   # Page definition & roles
-│               ├── financial_audit.py     # Backend API (~920 lines)
-│               ├── financial_audit.js     # Frontend dashboard (~2,100 lines)
+│               ├── financial_audit.py     # Backend API + AI proxy (~1,500 lines)
+│               ├── financial_audit.js     # Frontend dashboard (~2,200 lines)
 │               └── financial_audit.css    # RTL/LTR responsive styles (~1,000 lines)
 ```
 
-**Total: ~4,000+ lines of code | Zero external dependencies**
+**Total: ~4,700+ lines of code | Zero external dependencies**
 
 ---
 
@@ -250,15 +252,40 @@ The dashboard is designed to work on **any** ERPNext site without modification:
 
 ## AI-Powered Analysis
 
-The dashboard includes **free AI analysis** powered by [Puter.js](https://puter.com) — no API keys, no backend proxy, no cost.
+The dashboard includes **secure AI analysis** with three provider options — managed via **Financial Audit Settings** (`/app/financial-audit-settings`).
+
+### AI Providers
+
+| Provider | API Key | Data Flow | Best For |
+|----------|---------|-----------|----------|
+| **Puter (Free)** | Not required | Server builds anonymized prompt → Browser calls Puter AI | Demos, testing, small teams |
+| **OpenAI** | Required | Fully server-side (anonymize → prompt → API call → response) | Production, enterprise |
+| **Custom Endpoint** | Required | Same as OpenAI but to your own URL | Self-hosted LLMs, data residency |
 
 ### How It Works
 
 1. Click the **"AI Analysis"** button (or "تحليل ذكي" in Arabic)
-2. Dashboard builds a structured prompt with ALL financial data including advanced analytics
-3. Puter.js sends the prompt to GPT-4o-mini (free tier)
-4. AI returns a comprehensive financial report in the user's language
-5. Use the **"Clear AI"** button to dismiss the analysis
+2. Backend fetches financial data, **anonymizes all identifiable names** (customers, suppliers, products, bank accounts → generic labels like "Customer A", "Supplier 1")
+3. Prompt is built **server-side** with anonymized data
+4. For OpenAI/Custom: backend calls the AI API directly and returns the response
+5. For Puter: anonymized prompt is sent to the browser, which calls Puter AI client-side
+6. AI returns a comprehensive financial report in the user's language
+7. Every request is logged in **AI Audit Log** with user, timestamp, status, and provider
+
+### Data Anonymization
+
+Before any data reaches an AI provider, the following identifiers are replaced:
+
+| Original | Anonymized As |
+|----------|---------------|
+| Customer names | Customer A, Customer B, ... |
+| Supplier names | Supplier 1, Supplier 2, ... |
+| Product names | Product A, Product B, ... |
+| Bank account names | Bank Account 1, Bank Account 2, ... |
+| Cost center names | Cost Center 1, Cost Center 2, ... |
+| Company name (optional) | The Company |
+
+All **financial amounts, ratios, and percentages remain intact** for accurate analysis.
 
 ### AI Analysis Covers
 
@@ -274,6 +301,20 @@ The dashboard includes **free AI analysis** powered by [Puter.js](https://puter.
 10. **SWOT Analysis** — Financial strengths, weaknesses, opportunities, threats
 11. **Actionable Recommendations** — 10 prioritized suggestions
 12. **Early Warning Signs** — Future problem indicators
+
+### AI Settings
+
+Configure at `/app/financial-audit-settings`:
+
+| Setting | Description |
+|---------|-------------|
+| Enable AI Analysis | Master on/off toggle |
+| AI Provider | Puter (Free) / OpenAI / Custom Endpoint |
+| API Key | Encrypted storage (required for OpenAI/Custom) |
+| Model Name | Default: gpt-4o-mini |
+| Max Requests Per User Per Day | Rate limit (default: 20) |
+| Anonymize Data | Replace names with generic labels before AI |
+| Anonymize Company Name | Also replace the company name |
 
 ---
 
@@ -368,7 +409,12 @@ Visual progress bar showing customer payment collection percentage:
 - **Page access**: Restricted to `System Manager` and `Accounts Manager` roles
 - **Backend**: Uses `@frappe.whitelist()` with standard Frappe permission checks
 - **Data isolation**: All queries filter by `company` — multi-tenant safe
-- **AI processing**: Client-side only via Puter.js — no data sent to custom backend
+- **AI data anonymization**: All customer, supplier, product, and account names are replaced with generic labels before any AI provider receives data
+- **Server-side prompt building**: Prompts are constructed on the backend — no raw financial identifiers ever reach the browser for AI purposes
+- **API key encryption**: Stored using Frappe's encrypted Password field — never exposed in API responses
+- **Rate limiting**: Per-user daily request cap via Redis cache
+- **Audit logging**: Every AI request logged with user, company, timestamp, provider, and status via AI Audit Log doctype
+- **Provider flexibility**: Use Puter (free) for demos, OpenAI for production, or a self-hosted LLM for full data residency control
 
 ---
 
@@ -389,7 +435,7 @@ Visual progress bar showing customer payment collection percentage:
 - **Full i18n**: `FA_TRANSLATIONS` dictionary with 200+ keys in Arabic/English
 - **Language detection**: Automatic via `frappe.boot.lang` with `t()` helper method
 - **ECharts 5.5**: Interactive charts with tooltips and responsive sizing
-- **Puter.js**: Free AI analysis (GPT-4o-mini) — bilingual prompts
+- **Multi-provider AI**: Puter (free), OpenAI, Custom endpoint — server-side anonymization and prompt building
 - **Collapsible sections**: Toggle buttons for long tables
 - **PDF export**: `window.print()` with enhanced print CSS, auto-expand, Frappe chrome hidden
 - **Custom layouts**: Section registry with `localStorage` persistence, Frappe dialog UI
@@ -420,7 +466,11 @@ Visual progress bar showing customer payment collection percentage:
 - [x] Custom dashboard layouts (show/hide with persistence)
 - [ ] Email scheduled reports
 - [ ] Budget vs actual comparison
-- [ ] Audit trail logging
+- [x] AI data anonymization (customer/supplier/product name masking)
+- [x] Multi-provider AI support (Puter, OpenAI, Custom/Self-hosted)
+- [x] AI audit trail logging
+- [x] Per-user AI rate limiting
+- [x] Financial Audit Settings doctype
 
 ---
 

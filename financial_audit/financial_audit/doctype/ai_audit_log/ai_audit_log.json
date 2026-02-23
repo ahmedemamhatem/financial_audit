@@ -1,0 +1,112 @@
+{
+	"actions": [],
+	"autoname": "AI-LOG-.#####",
+	"creation": "2026-02-23 00:00:00.000000",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"user",
+		"company",
+		"from_date",
+		"to_date",
+		"column_break_1",
+		"status",
+		"provider",
+		"model_used",
+		"response_time",
+		"section_error",
+		"error_message"
+	],
+	"fields": [
+		{
+			"fieldname": "user",
+			"fieldtype": "Link",
+			"label": "User",
+			"options": "User",
+			"read_only": 1
+		},
+		{
+			"fieldname": "company",
+			"fieldtype": "Data",
+			"label": "Company",
+			"read_only": 1
+		},
+		{
+			"fieldname": "from_date",
+			"fieldtype": "Date",
+			"label": "From Date",
+			"read_only": 1
+		},
+		{
+			"fieldname": "to_date",
+			"fieldtype": "Date",
+			"label": "To Date",
+			"read_only": 1
+		},
+		{
+			"fieldname": "column_break_1",
+			"fieldtype": "Column Break"
+		},
+		{
+			"fieldname": "status",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"label": "Status",
+			"options": "Success\nFailed\nRate Limited",
+			"read_only": 1
+		},
+		{
+			"fieldname": "provider",
+			"fieldtype": "Data",
+			"in_list_view": 1,
+			"label": "Provider",
+			"read_only": 1
+		},
+		{
+			"fieldname": "model_used",
+			"fieldtype": "Data",
+			"label": "Model Used",
+			"read_only": 1
+		},
+		{
+			"fieldname": "response_time",
+			"fieldtype": "Float",
+			"label": "Response Time (seconds)",
+			"read_only": 1
+		},
+		{
+			"fieldname": "section_error",
+			"fieldtype": "Section Break",
+			"label": "Error Details"
+		},
+		{
+			"fieldname": "error_message",
+			"fieldtype": "Small Text",
+			"label": "Error Message",
+			"read_only": 1
+		}
+	],
+	"in_create": 1,
+	"issingle": 0,
+	"links": [],
+	"modified": "2026-02-23 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "Financial Audit",
+	"name": "AI Audit Log",
+	"naming_rule": "Expression (old style)",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"read": 1,
+			"role": "System Manager"
+		},
+		{
+			"read": 1,
+			"role": "Accounts Manager"
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 0
+}
