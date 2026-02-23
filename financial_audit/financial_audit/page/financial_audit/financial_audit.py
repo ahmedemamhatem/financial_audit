@@ -1328,7 +1328,10 @@ def get_ai_settings():
 @frappe.whitelist()
 def get_ai_analysis(filters=None, lang=None):
 	"""Server-side AI analysis with anonymization, rate limiting, and audit logging."""
-	settings = frappe.get_single("Financial Audit Settings")
+	try:
+		settings = frappe.get_single("Financial Audit Settings")
+	except Exception:
+		frappe.throw(_("Financial Audit Settings not found. Please run 'bench migrate' or create the doctype at /app/financial-audit-settings."))
 
 	if not cint(settings.enabled):
 		frappe.throw(_("AI Analysis is disabled. Enable it in Financial Audit Settings."))

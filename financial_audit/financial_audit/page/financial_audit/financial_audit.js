@@ -27,8 +27,14 @@ const FA_TRANSLATIONS = {
 	load_data_first: { ar: 'يرجى تحميل البيانات المالية أولاً', en: 'Please load financial data first' },
 	ai_loading: { ar: 'جاري تحميل محرك الذكاء الاصطناعي، يرجى المحاولة مرة أخرى بعد ثوانٍ', en: 'AI engine is loading, please try again in a few seconds' },
 	ai_analyzing: { ar: 'جاري التحليل بالذكاء الاصطناعي... قد يستغرق دقيقة', en: 'AI analysis in progress... may take a minute' },
+	ai_analyzing_long: { ar: 'جاري التحليل بالذكاء الاصطناعي... قد يستغرق من 1 إلى 3 دقائق', en: 'AI analysis in progress... may take 1-3 minutes' },
 	ai_no_response: { ar: 'لا توجد استجابة', en: 'No response' },
 	ai_error: { ar: 'حدث خطأ', en: 'An error occurred' },
+	ai_puter_failed: { ar: 'فشل تحميل محرك Puter AI — تحقق من اتصال الإنترنت', en: 'Puter AI engine failed to load — check your internet connection' },
+	ai_settings_btn: { ar: 'إعدادات AI', en: 'AI Settings' },
+	page_aria_label: { ar: 'لوحة التدقيق المالي', en: 'Financial Audit Dashboard' },
+	filters_aria_label: { ar: 'فلاتر التقرير', en: 'Report Filters' },
+	kpi_aria_label: { ar: 'مؤشرات الأداء الرئيسية', en: 'Key Performance Indicators' },
 
 	// ── Filters ──
 	company: { ar: 'الشركة', en: 'Company' },
@@ -532,13 +538,13 @@ class FinancialAuditDashboard {
 		const section_key = body_cls.replace('-body', '');
 		const hidden = this.hidden_sections.has(section_key) ? ' style="display:none"' : '';
 		return `
-			<div class="${cls}" data-section-key="${section_key}"${hidden}>
-				<div class="section-header" data-target="${body_cls}">
+			<div class="${cls}" data-section-key="${section_key}"${hidden} role="region" aria-label="${title}">
+				<div class="section-header" data-target="${body_cls}" role="button" aria-expanded="true" tabindex="0">
 					<span class="section-title">
-						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
+						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}" aria-hidden="true"></i></span>
 						${title}
 					</span>
-					<span class="toggle-chevron">&#9660;</span>
+					<span class="toggle-chevron" aria-hidden="true">&#9660;</span>
 				</div>
 				${desc ? `<div class="section-desc">${desc}</div>` : ''}
 				<div class="section-body ${body_cls}"></div>
@@ -549,13 +555,13 @@ class FinancialAuditDashboard {
 		const section_key = chart_cls;
 		const hidden = this.hidden_sections.has(section_key) ? ' style="display:none"' : '';
 		return `
-			<div class="chart-section" data-section-key="${section_key}"${hidden}>
-				<div class="section-header" data-target="${chart_cls}">
+			<div class="chart-section" data-section-key="${section_key}"${hidden} role="region" aria-label="${title}">
+				<div class="section-header" data-target="${chart_cls}" role="button" aria-expanded="true" tabindex="0">
 					<span class="section-title">
-						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}"></i></span>
+						<span class="section-icon" style="background:${icon_bg};color:${icon_color};"><i class="fa ${icon}" aria-hidden="true"></i></span>
 						${title}
 					</span>
-					<span class="toggle-chevron">&#9660;</span>
+					<span class="toggle-chevron" aria-hidden="true">&#9660;</span>
 				</div>
 				${desc ? `<div class="section-desc">${desc}</div>` : ''}
 				<div class="section-body ${chart_cls}">
@@ -574,21 +580,22 @@ class FinancialAuditDashboard {
 		this.page.add_inner_button(this.lang === 'ar' ? 'مسح التحليل' : 'Clear AI', () => this.clear_ai_analysis());
 		this.page.add_inner_button(this.t('pdf_export_btn'), () => this.export_pdf());
 		this.page.add_inner_button(this.t('layout_btn'), () => this.show_layout_dialog());
+		this.page.add_inner_button(this.t('ai_settings_btn'), () => frappe.set_route('Form', 'Financial Audit Settings'));
 
 		this.page.main.html(`
-			<div class="financial-audit-page ${this.is_rtl ? '' : 'ltr-mode'}" dir="${dir}">
-				<div class="filters-section"></div>
+			<div class="financial-audit-page ${this.is_rtl ? '' : 'ltr-mode'}" dir="${dir}" role="main" aria-label="${this.t('page_aria_label')}">
+				<div class="filters-section" role="search" aria-label="${this.t('filters_aria_label')}"></div>
 
 				<!-- AI Analysis — right after filters, before everything -->
-				<div class="ai-analysis-section" style="display: none;">
-					<div class="section-header ai-header" data-target="ai-analysis-body">
-						<span class="section-title"><i class="fa fa-magic" style="${icon_margin}"></i> ${this.t('ai_section_title')}</span>
-						<span class="toggle-chevron">&#9660;</span>
+				<div class="ai-analysis-section" style="display: none;" role="region" aria-label="${this.t('ai_section_title')}">
+					<div class="section-header ai-header" data-target="ai-analysis-body" role="button" aria-expanded="false" tabindex="0">
+						<span class="section-title"><i class="fa fa-magic" aria-hidden="true" style="${icon_margin}"></i> ${this.t('ai_section_title')}</span>
+						<span class="toggle-chevron" aria-hidden="true">&#9660;</span>
 					</div>
-					<div class="section-body ai-analysis-body"></div>
+					<div class="section-body ai-analysis-body" aria-live="polite"></div>
 				</div>
 
-				<div class="kpi-cards"></div>
+				<div class="kpi-cards" role="region" aria-label="${this.t('kpi_aria_label')}"></div>
 
 				${this.make_section('data-section', 'fa-balance-scale', '#eef1ff', '#4361ee',
 					this.t('sec_balance_sheet'), 'balance-sheet-body',
@@ -789,6 +796,16 @@ class FinancialAuditDashboard {
 			const $chevron = $(this).find('.toggle-chevron');
 			$body.slideToggle(200);
 			$chevron.toggleClass('collapsed');
+			const expanded = !$chevron.hasClass('collapsed');
+			$(this).attr('aria-expanded', expanded ? 'true' : 'false');
+		});
+
+		// Keyboard accessibility for section headers
+		this.page.main.on('keydown', '.section-header[role="button"]', function(e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				$(this).trigger('click');
+			}
 		});
 
 		// Resize echarts on window resize
@@ -1903,13 +1920,14 @@ class FinancialAuditDashboard {
 		this.$ai.slideDown(200, () => {
 			$('html, body').animate({ scrollTop: this.$ai.offset().top - 60 }, 300);
 		});
-		this.$ai_body.html(`<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> ${this.t('ai_analyzing')}</div>`);
+		this.$ai_body.html(`<div class="loading-state"><i class="fa fa-spinner fa-spin"></i> ${this.t('ai_analyzing_long')}</div>`);
 
 		try {
 			const me = this;
 			frappe.call({
 				method: 'financial_audit.financial_audit.page.financial_audit.financial_audit.get_ai_analysis',
 				args: { filters: this.filters, lang: this.lang },
+				timeout: 300,
 				callback: async function(r) {
 					if (!r.message) {
 						me.$ai_body.html(`<div class="empty-state"><div class="empty-icon"><i class="fa fa-exclamation-triangle"></i></div><p>${me.t('ai_no_response')}</p></div>`);
@@ -1954,7 +1972,7 @@ class FinancialAuditDashboard {
 			const start = Date.now();
 			const check = setInterval(() => {
 				if (window.puter) { clearInterval(check); resolve(); }
-				else if (Date.now() - start > timeout) { clearInterval(check); reject(new Error('Puter AI engine failed to load')); }
+				else if (Date.now() - start > timeout) { clearInterval(check); reject(new Error(this.t('ai_puter_failed'))); }
 			}, 200);
 		});
 	}
@@ -2077,8 +2095,9 @@ class FinancialAuditDashboard {
 			<td class="currency-val" style="color:${(t.revenue - t.expenses) >= 0 ? '#047857' : '#b91c1c'}">${this.fc(t.revenue - t.expenses)}</td>
 		</tr>`).join('');
 
-		// Convert AI text to HTML
-		let ai_html = text
+		// Convert AI text to HTML (escape first to prevent XSS injection)
+		const _esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+		let ai_html = _esc(text)
 			.replace(/^### (.*$)/gm, '<h4>$1</h4>')
 			.replace(/^## (.*$)/gm, '<h3>$1</h3>')
 			.replace(/^# (.*$)/gm, '<h2>$1</h2>')
